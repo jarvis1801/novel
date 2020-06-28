@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="txt_size_x_large">20sp</dimen>
+    <dimen name="txt_size_large">18sp</dimen>
+    <dimen name="txt_size_normal">16sp</dimen>
+    <dimen name="txt_size_small">14sp</dimen>
+    <dimen name="txt_size_x_small">12sp</dimen>
+
+    <dimen name="margin_xx_large">18dp</dimen>
+    <dimen name="margin_x_large">16dp</dimen>
+    <dimen name="margin_large">14dp</dimen>
+    <dimen name="margin_normal">12dp</dimen>
+    <dimen name="margin_small">10dp</dimen>
+    <dimen name="margin_x_small">8dp</dimen>
+    <dimen name="margin_xx_small">6dp</dimen>
+
+    <dimen name="padding_xx_large">18dp</dimen>
+    <dimen name="padding_x_large">16dp</dimen>
+    <dimen name="padding_large">14dp</dimen>
+    <dimen name="padding_normal">12dp</dimen>
+    <dimen name="padding_small">10dp</dimen>
+    <dimen name="padding_x_small">8dp</dimen>
+    <dimen name="padding_xx_small">6dp</dimen>
+</resources>

@@ -1,0 +1,19 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="VolumeChapterTabLayout">
+        <item name="background">@color/volume_chapter_tab_bg</item>
+        <item name="tabSelectedTextColor">@color/volume_chapter_tab_selected_txt</item>
+        <item name="tabTextColor">@color/volume_chapter_tab_txt</item>
+        <item name="tabIndicatorColor">@color/volume_chapter_tab_indicator</item>
+        <item name="tabMode">fixed</item>
+        <item name="tabGravity">fill</item>
+        <item name="tabIndicatorFullWidth">false</item>
+    </style>
+</resources>
