@@ -1,14 +1,12 @@
 package com.jarvis.novel.ui.recyclerview
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.common.util.SharedPreferencesUtils
 import com.jarvis.novel.R
+import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Paragraph
 import com.jarvis.novel.util.SharedPreferenceUtil
 import kotlinx.android.synthetic.main.item_novel_text_content.view.*
@@ -39,7 +37,7 @@ class NovelTextContentAdapter(private val mContext: Context) : RecyclerView.Adap
         private val txtContent = itemView.txt_content
         fun bind(item: Paragraph) {
             txtContent.text = item.data
-            txtContent.textSize = mContext.resources.getDimension(R.dimen.txt_size_normal) * SharedPreferenceUtil.getFontScale()
+            txtContent.textSize = App.instance.pixelToDp(mContext.resources.getDimension(R.dimen.txt_size_normal).toInt()) * SharedPreferenceUtil.getFontScale()
         }
     }
 }
