@@ -8,7 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class VolumeChapterViewpagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
     override fun getItemCount(): Int {
-        return
+        return 1
     }
 
     @NonNull
