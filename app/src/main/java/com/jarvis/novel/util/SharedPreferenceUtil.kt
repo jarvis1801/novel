@@ -82,6 +82,22 @@ object SharedPreferenceUtil {
         editor.commit()
     }
 
+    fun setAddNovelListByStringArray(novelIdList: List<String>) {
+        val sb = StringBuilder()
+        for (i in novelIdList.indices) {
+            if (novelIdList[i].isNotEmpty()) {
+                sb.append(novelIdList[i])
+                if (i < novelIdList.size - 1) {
+                    sb.append(",")
+                }
+            }
+        }
+
+        val editor = getSharedPreferencesEditor()
+        editor.putString(TYPE_ADD_NOVEL_LIST, if (novelIdList.isNotEmpty()) { sb.toString() } else { null })
+        editor.commit()
+    }
+
     fun getUpdateNovelList(): List<String>? {
         val list = getSharedPreferences().getString(TYPE_UPDATE_NOVEL_LIST, null) ?: return null
         return list.split(",")
@@ -115,6 +131,22 @@ object SharedPreferenceUtil {
 
         val editor = getSharedPreferencesEditor()
         editor.putString(TYPE_UPDATE_NOVEL_LIST, sb.toString())
+        editor.commit()
+    }
+
+    fun setUpdateNovelListByStringArray(novelIdList: List<String>) {
+        val sb = StringBuilder()
+        for (i in novelIdList.indices) {
+            if (novelIdList[i].isNotEmpty()) {
+                sb.append(novelIdList[i])
+                if (i < novelIdList.size - 1) {
+                    sb.append(",")
+                }
+            }
+        }
+
+        val editor = getSharedPreferencesEditor()
+        editor.putString(TYPE_UPDATE_NOVEL_LIST, if (novelIdList.isNotEmpty()) { sb.toString() } else { null })
         editor.commit()
     }
 }

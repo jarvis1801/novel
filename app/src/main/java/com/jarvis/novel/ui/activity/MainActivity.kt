@@ -25,7 +25,7 @@ class MainActivity : BaseActivity() {
                         updateConfig(it.body()!!)
             },
             err = {
-
+                toMainFragment()
             })
     }
 

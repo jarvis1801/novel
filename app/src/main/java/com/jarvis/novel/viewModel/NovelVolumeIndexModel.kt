@@ -10,7 +10,7 @@ class NovelVolumeIndexModel : ViewModel() {
 
     val mNovelId: MutableLiveData<String?> = MutableLiveData()
 
-    fun getVolumeList() {
+    fun getVolumeList(updateVolumeCallback: () -> Unit? = {}) {
         if (mNovelId.value == null) {
             return
         }
@@ -22,6 +22,7 @@ class NovelVolumeIndexModel : ViewModel() {
             next = {
                 if (it.code().toString().startsWith("2") || it.code().toString().startsWith("3") || !it.body().isNullOrEmpty()) {
                     volumeListLiveData.postValue(it.body())
+                    updateVolumeCallback()
                 } else {
                     volumeListLiveData.postValue(null)
                 }

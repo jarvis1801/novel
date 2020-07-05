@@ -49,15 +49,11 @@ class NovelListFragment : BaseFragment() {
 
     private fun checkNewAddAndUpdateNovel() {
         val addNovelList = SharedPreferenceUtil.getAddNovelList()
-        val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
 
         val novelIdList = arrayListOf<String>()
 
         if (addNovelList != null) {
             novelIdList.addAll(addNovelList)
-        }
-        if (updateNovelList != null) {
-            novelIdList.addAll(updateNovelList)
         }
 
         if (novelIdList.size > 0) {
