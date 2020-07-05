@@ -22,6 +22,9 @@ interface MasterService {
     @GET("api/novelList")
     fun getNovelList(): Observable<Response<List<Novel>>>
 
+    @GET("api/novel/{novelId}")
+    fun getNovelById(@Path("novelId") novelId: String): Observable<Response<Novel>>
+
     @GET("api/volumeList/{novelId}")
     fun getVolumeList(@Path("novelId") novelId: String): Observable<Response<List<Volume>>>
 

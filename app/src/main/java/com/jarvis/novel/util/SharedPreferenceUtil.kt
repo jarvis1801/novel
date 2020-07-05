@@ -46,13 +46,16 @@ object SharedPreferenceUtil {
         editor.commit()
     }
 
-    fun getAddNovelList(): List<String> {
-        return getSharedPreferences().getString(TYPE_ADD_NOVEL_LIST, "")!!.split(",")
+    fun getAddNovelList(): List<String>? {
+        val list = getSharedPreferences().getString(TYPE_ADD_NOVEL_LIST, null) ?: return null
+        return list.split(",")
     }
 
     fun setAddNovelList(novelVersionList: List<NovelVersion>) {
         val previousList = mutableListOf<String>()
-        previousList.addAll(getAddNovelList())
+        if (getAddNovelList() != null) {
+            previousList.addAll(getAddNovelList()!!)
+        }
 
         novelVersionList.forEach { it ->
             it.novelIdList.filterNot {
@@ -79,13 +82,16 @@ object SharedPreferenceUtil {
         editor.commit()
     }
 
-    fun getUpdateNovelList(): List<String> {
-        return getSharedPreferences().getString(TYPE_UPDATE_NOVEL_LIST, "")!!.split(",")
+    fun getUpdateNovelList(): List<String>? {
+        val list = getSharedPreferences().getString(TYPE_UPDATE_NOVEL_LIST, null) ?: return null
+        return list.split(",")
     }
 
     fun setUpdateNovelList(novelVersionList: List<NovelVersion>) {
         val previousList = mutableListOf<String>()
-        previousList.addAll(getUpdateNovelList())
+        if (getUpdateNovelList() != null) {
+            previousList.addAll(getUpdateNovelList()!!)
+        }
 
         novelVersionList.forEach { it ->
             it.novelIdList.filterNot {

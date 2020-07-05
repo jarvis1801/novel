@@ -2,6 +2,7 @@ package com.jarvis.novel.ui.viewpager
 
 
 import android.content.Context
+import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -11,7 +12,7 @@ import com.jarvis.novel.R
 import com.jarvis.novel.ui.fragment.NovelVolumeIndexFragment
 import com.jarvis.novel.ui.fragment.NovelVolumeInfoFragment
 
-class NovelVolumeChapterViewPagerAdapter(context: Context, fm: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fm, lifecycle) {
+class NovelVolumeChapterViewPagerAdapter(private val novelId: String, context: Context, fm: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fm, lifecycle) {
 
     companion object {
 
@@ -31,6 +32,11 @@ class NovelVolumeChapterViewPagerAdapter(context: Context, fm: FragmentManager, 
     }
 
     override fun createFragment(position: Int): Fragment {
-        return fragmentList[position]
+        val fragment = fragmentList[position]
+        val bundle = Bundle()
+        bundle.putString("novelId", novelId)
+
+        fragment.arguments = bundle
+        return fragment
     }
 }

@@ -61,7 +61,6 @@ class NovelContentFragment : BaseFragment() {
         mTimerTask = object : TimerTask() {
             override fun run() {
                 mHandler!!.post {
-                    Log.d("chris", "123123")
                     App.instance.setTranslation(view = bottom_bar, value = App.instance.dpToPixel(35f).toFloat(), duration = 500)
                 }
             }

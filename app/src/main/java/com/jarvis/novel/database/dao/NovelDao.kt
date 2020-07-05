@@ -17,6 +17,9 @@ interface NovelDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllNotReplace(novels: List<Novel>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAllReplace(novels: List<Novel>)
+
     @Delete
     fun delete(novel: Novel)
 

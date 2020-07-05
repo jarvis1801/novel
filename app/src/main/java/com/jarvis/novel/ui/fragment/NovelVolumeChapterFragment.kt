@@ -81,7 +81,7 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initView() {
-        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(requireContext(), childFragmentManager, lifecycle)
+        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireContext(), childFragmentManager, lifecycle)
         viewpager.apply {
             adapter = viewpagerAdapter
             (getChildAt(0) as RecyclerView).overScrollMode = RecyclerView.OVER_SCROLL_NEVER

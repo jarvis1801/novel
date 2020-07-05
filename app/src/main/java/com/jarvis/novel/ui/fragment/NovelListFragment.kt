@@ -16,6 +16,7 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.NovelAdapter
+import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NovelViewModel
 import kotlinx.android.synthetic.main.fragment_novel.*
 
@@ -42,6 +43,27 @@ class NovelListFragment : BaseFragment() {
         if (novelListDB.isNullOrEmpty()) {
             model.getNovelList()
         } else {
+            checkNewAddAndUpdateNovel()
+        }
+    }
+
+    private fun checkNewAddAndUpdateNovel() {
+        val addNovelList = SharedPreferenceUtil.getAddNovelList()
+        val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
+
+        val novelIdList = arrayListOf<String>()
+
+        if (addNovelList != null) {
+            novelIdList.addAll(addNovelList)
+        }
+        if (updateNovelList != null) {
+            novelIdList.addAll(updateNovelList)
+        }
+
+        if (novelIdList.size > 0) {
+            model.addUpdateNovelList(novelIdList)
+        } else {
+            novelListDB = getDataBase().userDao().getAll()
             model.novelListLiveData.postValue(novelListDB)
         }
     }
@@ -50,7 +72,20 @@ class NovelListFragment : BaseFragment() {
         model.novelListLiveData.observe(viewLifecycleOwner, Observer {
             if (it != null) {
                 getDataBase().userDao().insertAllNotReplace(it)
-                novelAdapter?.updateList(it)
+                val sortedList = it.sortedBy { data ->
+                    data.createdAt
+                }
+                novelAdapter?.updateList(sortedList)
+            }
+        })
+
+        model.addUpdateNovelListLiveData.observe(viewLifecycleOwner, Observer {
+            if (it != null) {
+                if (it.isNotEmpty()) {
+                    getDataBase().userDao().insertAllReplace(it)
+                }
+                novelListDB = getDataBase().userDao().getAll()
+                model.novelListLiveData.postValue(novelListDB)
             }
         })
     }

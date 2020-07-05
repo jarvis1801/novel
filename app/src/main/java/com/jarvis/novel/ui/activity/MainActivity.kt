@@ -23,26 +23,18 @@ class MainActivity : BaseActivity() {
                 if (it.code() == 200)
                     if (it.body() != null)
                         updateConfig(it.body()!!)
-
-//                toMainFragment()
             },
             err = {
 
             })
-//        App.instance.addFragment(fragment = NovelListFragment(), containerLayoutId = R.id.fragment_container, fm = supportFragmentManager, isShowAnimation = false, addToBackStack = false)
     }
 
     private fun updateConfig(novelVersionList: List<NovelVersion>) {
-//        val novelVersionListDB = getDatabase().novelVersion().getList()
-//        if (novelVersionListDB == null) {
-//        } else {
-//
-//        }
         if (novelVersionList.isNotEmpty()) {
             val currentVersion = SharedPreferenceUtil.getNovelVersion()
             val listVersion = novelVersionList[0].version
 
-            if (currentVersion < listVersion) {
+            if (currentVersion < listVersion && currentVersion != 0) {
                 novelVersionList.filter {
                     it.version < currentVersion
                 }
@@ -50,15 +42,10 @@ class MainActivity : BaseActivity() {
                 SharedPreferenceUtil.setUpdateNovelList(novelVersionList)
                 SharedPreferenceUtil.setAddNovelList(novelVersionList)
                 SharedPreferenceUtil.setNovelVersion(listVersion)
-
-                Log.d("chris", "add: ${SharedPreferenceUtil.getAddNovelList()}")
-                Log.d("chris", "update: ${SharedPreferenceUtil.getUpdateNovelList()}")
-                Log.d("chris", "v: ${SharedPreferenceUtil.getNovelVersion()}")
             }
-//            SharedPreferenceUtil.setNovelVersion(currentVersion)
-
+            SharedPreferenceUtil.setNovelVersion(listVersion)
         }
-
+        toMainFragment()
     }
 
     private fun toMainFragment() {

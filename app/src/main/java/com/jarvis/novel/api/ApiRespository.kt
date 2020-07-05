@@ -4,6 +4,7 @@ package com.jarvis.novel.api
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.data.NovelVersion
 import com.jarvis.novel.data.Volume
+import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -87,5 +88,11 @@ class ApiRepository {
                     err(e)
                 }
             })
+    }
+
+    fun getNovelByIdObservable(novelId: String): Observable<Response<Novel>> {
+        return apiService.getNovelById(novelId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
     }
 }
