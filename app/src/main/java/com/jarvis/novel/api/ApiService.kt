@@ -3,6 +3,7 @@ package com.jarvis.novel.api
 import android.util.Log
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
+import com.jarvis.novel.data.NovelVersion
 import com.jarvis.novel.data.Volume
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
@@ -24,6 +25,8 @@ interface MasterService {
     @GET("api/volumeList/{novelId}")
     fun getVolumeList(@Path("novelId") novelId: String): Observable<Response<List<Volume>>>
 
+    @GET("api/novelVersionList")
+    fun getNovelVersionList(): Observable<Response<List<NovelVersion>?>>
 
     companion object Factory {
         fun retrofitService(): MasterService = Retrofit.Builder()

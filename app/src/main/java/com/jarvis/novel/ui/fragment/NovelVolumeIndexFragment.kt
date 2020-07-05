@@ -29,7 +29,7 @@ import kotlinx.android.synthetic.main.fragment_novel_volume_index.*
 class NovelVolumeIndexFragment : BaseFragment() {
     private val model: VolumeChapterViewModel by activityViewModels()
 
-    private var volumeListDB: List<Volume>? = listOf<Volume>()
+    private var volumeListDB: List<Volume>? = listOf()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_index, container, false)
@@ -50,6 +50,14 @@ class NovelVolumeIndexFragment : BaseFragment() {
             if (volumeListDB.isNullOrEmpty()) {
                 model.getVolumeList()
             } else {
+                volumeListDB = volumeListDB!!.sortedWith(compareBy {
+                    it.index
+                })
+                volumeListDB!!.forEach { it ->
+                    it.chapterList = it.chapterList.sortedWith(compareBy {
+                        it.index
+                    })
+                }
                 model.volumeListLiveData.postValue(volumeListDB)
             }
         })
@@ -63,8 +71,8 @@ class NovelVolumeIndexFragment : BaseFragment() {
     }
 
     private fun addViewToMainContainer(volumeList: List<Volume>) {
-        volumeList.forEach { it ->
-            val volumeTitleTextView = createVolumeTitleTextView(it)
+        volumeList.forEach { volume ->
+            val volumeTitleTextView = createVolumeTitleTextView(volume)
             mainContainer.addView(volumeTitleTextView)
 
             val chapterTagContainer = FlexboxLayout(requireContext())
@@ -72,19 +80,19 @@ class NovelVolumeIndexFragment : BaseFragment() {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
-//            chapterTagContainer.justifyContent = JustifyContent.SPACE_BETWEEN
+
             chapterTagContainer.flexWrap = FlexWrap.WRAP
 
             mainContainer.addView(chapterTagContainer)
 
-            it.chapterList.forEach {
-                val chapterTag = createChapterTag(it)
+            volume.chapterList.forEach { it ->
+                val chapterTag = createChapterTag(it, volume._id)
                 chapterTagContainer.addView(chapterTag)
             }
         }
     }
 
-    private fun createChapterTag(chapter: Chapter) : TextView {
+    private fun createChapterTag(chapter: Chapter, volumeId: String) : TextView {
         val textView = TextView(requireContext())
 
         textView.textSize = App.instance.pixelToDp(resources.getDimension(R.dimen.txt_size_normal).toInt()).toFloat()
@@ -101,16 +109,16 @@ class NovelVolumeIndexFragment : BaseFragment() {
         textView.gravity = Gravity.CENTER
 
         textView.setOnClickListener {
-            App.instance.addFragment(createNovelContentFragment(chapter), R.id.fragment_container, addToBackStack = true, fm = requireActivity().supportFragmentManager)
+            App.instance.addFragment(createNovelContentFragment(chapter, volumeId), R.id.fragment_container, addToBackStack = true, fm = requireActivity().supportFragmentManager)
         }
 
         return textView
     }
 
-    private fun createNovelContentFragment(chapter: Chapter): Fragment {
+    private fun createNovelContentFragment(chapter: Chapter, volumeId: String): Fragment {
         val fragment = NovelContentFragment()
         val bundle = Bundle()
-        bundle.putString("volumeId", model.mNovelId.value)
+        bundle.putString("volumeId", volumeId)
         bundle.putString("chapterId", chapter._id)
 
         fragment.arguments = bundle

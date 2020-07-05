@@ -2,6 +2,7 @@ package com.jarvis.novel.api
 
 
 import com.jarvis.novel.data.Novel
+import com.jarvis.novel.data.NovelVersion
 import com.jarvis.novel.data.Volume
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -56,6 +57,29 @@ class ApiRepository {
                 }
 
                 override fun onNext(t: Response<List<Volume>>) {
+                    next(t)
+                }
+
+                override fun onError(e: Throwable) {
+                    err(e)
+                }
+            })
+    }
+
+    fun getNovelVersionList(complete: () -> Unit, next: (t: Response<List<NovelVersion>?>) -> Unit, err: (e: Throwable) -> Unit) {
+        apiService.getNovelVersionList()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<Response<List<NovelVersion>?>> {
+                override fun onComplete() {
+                    complete()
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    mCompositeDisposable.add(d)
+                }
+
+                override fun onNext(t: Response<List<NovelVersion>?>) {
                     next(t)
                 }
 

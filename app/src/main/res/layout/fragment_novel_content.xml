@@ -29,8 +29,6 @@
         android:orientation="horizontal"
         android:translationY="35dp"
         android:background="@color/colorAccent"
-        android:clickable="true"
-        android:focusable="true"
         tools:translationY="0dp"
         android:weightSum="2"
         >

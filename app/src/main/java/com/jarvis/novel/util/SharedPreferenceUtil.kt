@@ -2,12 +2,17 @@ package com.jarvis.novel.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.jarvis.novel.data.NovelVersion
+import com.jarvis.novel.data.NovelVersionNovelIdList
 
 object SharedPreferenceUtil {
     private lateinit var mContext: Context
 
     private const val SPKEY = "493f5h695fh9n"
     private const val TYPE_CONTENT_FONT_SCALE = "CONTENT_FONT_SCALE"
+    private const val TYPE_NOVEL_VERSION = "NOVEL_VERSION"
+    private const val TYPE_ADD_NOVEL_LIST = "ADD_NOVEL_LIST"
+    private const val TYPE_UPDATE_NOVEL_LIST = "UPDATE_NOVEL_LIST"
 
     fun init(context: Context) {
         mContext = context
@@ -28,6 +33,82 @@ object SharedPreferenceUtil {
     fun setFontScale(scaleSize: Float) {
         val editor = getSharedPreferencesEditor()
         editor.putFloat(TYPE_CONTENT_FONT_SCALE, scaleSize)
+        editor.commit()
+    }
+
+    fun getNovelVersion(): Int {
+        return getSharedPreferences().getInt(TYPE_NOVEL_VERSION, 0)
+    }
+
+    fun setNovelVersion(novelVersion: Int) {
+        val editor = getSharedPreferencesEditor()
+        editor.putInt(TYPE_NOVEL_VERSION, novelVersion)
+        editor.commit()
+    }
+
+    fun getAddNovelList(): List<String> {
+        return getSharedPreferences().getString(TYPE_ADD_NOVEL_LIST, "")!!.split(",")
+    }
+
+    fun setAddNovelList(novelVersionList: List<NovelVersion>) {
+        val previousList = mutableListOf<String>()
+        previousList.addAll(getAddNovelList())
+
+        novelVersionList.forEach { it ->
+            it.novelIdList.filterNot {
+                it.type != "A"
+            }.forEach {
+                previousList.add(it.data)
+            }
+        }
+
+        val uniqueList = previousList.distinct()
+
+        val sb = StringBuilder()
+        for (i in 0 until uniqueList.size) {
+            if (uniqueList[i].isNotEmpty()) {
+                sb.append(uniqueList[i])
+                if (i < uniqueList.size - 1) {
+                    sb.append(",")
+                }
+            }
+        }
+
+        val editor = getSharedPreferencesEditor()
+        editor.putString(TYPE_ADD_NOVEL_LIST, sb.toString())
+        editor.commit()
+    }
+
+    fun getUpdateNovelList(): List<String> {
+        return getSharedPreferences().getString(TYPE_UPDATE_NOVEL_LIST, "")!!.split(",")
+    }
+
+    fun setUpdateNovelList(novelVersionList: List<NovelVersion>) {
+        val previousList = mutableListOf<String>()
+        previousList.addAll(getUpdateNovelList())
+
+        novelVersionList.forEach { it ->
+            it.novelIdList.filterNot {
+                it.type != "U"
+            }.forEach {
+                previousList.add(it.data)
+            }
+        }
+
+        val uniqueList = previousList.distinct()
+
+        val sb = StringBuilder()
+        for (i in 0 until uniqueList.size) {
+            if (uniqueList[i].isNotEmpty()) {
+                sb.append(uniqueList[i])
+                if (i < uniqueList.size - 1) {
+                    sb.append(",")
+                }
+            }
+        }
+
+        val editor = getSharedPreferencesEditor()
+        editor.putString(TYPE_UPDATE_NOVEL_LIST, sb.toString())
         editor.commit()
     }
 }

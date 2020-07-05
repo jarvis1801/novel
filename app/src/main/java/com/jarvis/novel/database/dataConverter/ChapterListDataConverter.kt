@@ -1,4 +1,4 @@
-package com.jarvis.novel.database
+package com.jarvis.novel.database.dataConverter
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
@@ -7,7 +7,7 @@ import com.jarvis.novel.data.Chapter
 import java.lang.reflect.Type
 
 
-class DataConverter {
+class ChapterListDataConverter {
     @TypeConverter
     fun fromChapterList(countryLang: List<Chapter?>?): String? {
         if (countryLang == null) {

@@ -16,7 +16,8 @@ data class Chapter(
     @Embedded
     val paragraph: List<Paragraph>,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    var positionY: Int = 0
 ) : Serializable
 
 data class Paragraph(

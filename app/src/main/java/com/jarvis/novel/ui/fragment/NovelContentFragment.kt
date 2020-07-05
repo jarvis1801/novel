@@ -17,25 +17,56 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Chapter
+import com.jarvis.novel.data.Volume
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.NovelAdapter
 import com.jarvis.novel.ui.recyclerview.NovelTextContentAdapter
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NovelContentViewModel
 import kotlinx.android.synthetic.main.fragment_novel_content.*
+import java.util.*
 
 class NovelContentFragment : BaseFragment() {
     private lateinit var model: NovelContentViewModel
 
     private var novelContentAdapter: NovelTextContentAdapter? = null
-    private var viewManager: RecyclerView.LayoutManager? = null
+    private var viewManager: LinearLayoutManager? = null
 
     private var isShowBottomBar = true
+
+    private var volumeDB: Volume? = null
+    private var chapterDB: Chapter? = null
+
+    private var scrolledY = 0
+
+    private var mHandler: Handler? = null
+    private var mTimer: Timer? = null
+    private var mTimerTask: TimerTask? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         model = requireActivity().let { ViewModelProvider(this).get(NovelContentViewModel::class.java) }
+
+        createTimeTask()
+    }
+
+    private fun createTimeTask() {
+        if (mTimer != null) {
+            mTimer!!.cancel()
+            mTimer!!.purge()
+        }
+        mHandler = Handler()
+        mTimer = Timer()
+        mTimerTask = object : TimerTask() {
+            override fun run() {
+                mHandler!!.post {
+                    Log.d("chris", "123123")
+                    App.instance.setTranslation(view = bottom_bar, value = App.instance.dpToPixel(35f).toFloat(), duration = 500)
+                }
+            }
+        }
+        mTimer?.schedule(mTimerTask, 3000L)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,38 +80,23 @@ class NovelContentFragment : BaseFragment() {
     private fun init() {
         initLiveData()
         getArgs()
-//        mHandler = Handler()
-//        mRunnable = Runnable {
-//            Log.d("chris", bottomBarVisibilityTimer.toString())
-//            if (enableTimer) {
-//                bottomBarVisibilityTimer++
-//            }
-//            if (bottomBarVisibilityTimer > 2) {
-//                App.instance.setTranslation(view = bottom_bar, value = App.instance.dpToPixel(35f).toFloat(), duration = 500)
-//            }
-//            mHandler.postDelayed(mRunnable, 1000)
-//        }
-//        mHandler.postDelayed(mRunnable, 1000)
     }
 
     private fun getArgs() {
         val chapterId = requireArguments().getString("chapterId", null)
         val volumeId = requireArguments().getString("volumeId", null)
         if (volumeId != null && chapterId != null) {
-            val volumeDB = getDataBase().volumeDao().findById(volumeId)
+            volumeDB = getDataBase().volumeDao().findOneById(volumeId)
 
             if (volumeDB != null) {
-                var chapter: Chapter? = null
-                volumeDB.forEach {it ->
-                    it.chapterList.forEach {
-                        if (it._id == chapterId) {
-                            chapter = it
-                        }
+                volumeDB!!.chapterList.forEach {
+                    if (it._id == chapterId) {
+                        chapterDB = it
                     }
                 }
 
-                if (chapter != null) {
-                    model.chapterLiveData.postValue(chapter)
+                if (chapterDB != null) {
+                    model.chapterLiveData.postValue(chapterDB)
                 }
             }
         } else {
@@ -91,7 +107,9 @@ class NovelContentFragment : BaseFragment() {
     private fun initLiveData() {
         model.chapterLiveData.observe(viewLifecycleOwner, Observer {
             if (it != null) {
+                scrolledY = it.positionY
                 novelContentAdapter?.updateList(it.paragraph)
+                viewManager?.scrollToPosition(scrolledY)
             }
         })
     }
@@ -109,61 +127,65 @@ class NovelContentFragment : BaseFragment() {
             setHasFixedSize(true)
             layoutManager = viewManager
             adapter = MergeAdapter(novelContentAdapter)
-        }
 
-        recyclerview_novel_content.setOnTouchListener{ v, event ->
-//            enableTimer = false
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    isShowBottomBar = true
-//                    enableTimer = true
-//                    bottomBarVisibilityTimer = 0
-                }
+            setOnTouchListener{ v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        isShowBottomBar = true
+                        mTimer?.cancel()
+                    }
 
-                MotionEvent.ACTION_UP -> {
-                    if (isShowBottomBar) {
-                        App.instance.setTranslation(view = bottom_bar, value = 0f, duration = 500)
-//                        mHandler.removeCallbacks(mRunnable)
-//                        mHandler.postDelayed(mRunnable, 2000)
+                    MotionEvent.ACTION_UP -> {
+                        if (isShowBottomBar) {
+                            App.instance.setTranslation(view = bottom_bar, value = 0f, duration = 500)
+                            createTimeTask()
+                        }
+                    }
+
+                    MotionEvent.ACTION_MOVE -> {
+                        isShowBottomBar = false
                     }
                 }
-
-                MotionEvent.ACTION_MOVE -> {
-                    isShowBottomBar = false
-                }
+                v.performClick()
             }
-            v.performClick()
         }
 
         btn_increase_text_size.setOnClickListener {
             val fontScale = SharedPreferenceUtil.getFontScale() + 0.05f
             SharedPreferenceUtil.setFontScale(fontScale)
             novelContentAdapter?.notifyDataSetChanged()
-
-//            mHandler.removeCallbacksAndMessages(null)
-//            mHandler.postDelayed({
-//                App.instance.setTranslation(view = bottom_bar, value = App.instance.dpToPixel(35f).toFloat(), duration = 500)
-//            }, 2000)
+            createTimeTask()
         }
 
         btn_decrease_text_size.setOnClickListener {
             val fontScale = SharedPreferenceUtil.getFontScale() - 0.05f
             SharedPreferenceUtil.setFontScale(fontScale)
             novelContentAdapter?.notifyDataSetChanged()
-
-//            mHandler.removeCallbacks(mRunnable)
-//            mHandler.postDelayed(mRunnable, 2000)
-        }
-
-        bottom_bar.setOnTouchListener { v, event ->
-//            enableTimer = false
-            v.performClick()
+            createTimeTask()
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onPause() {
+        super.onPause()
 
-//        mHandler.removeCallbacksAndMessages(mRunnable)
+        var chapterIndex: Int? = null
+        chapterIndex = volumeDB?.chapterList?.indexOf(chapterDB)
+
+        val chapterList = mutableListOf<Chapter>()
+        chapterList.addAll(volumeDB?.chapterList!!)
+
+        chapterDB?.positionY = viewManager?.findFirstVisibleItemPosition()!!
+
+        chapterList[chapterIndex!!] = chapterDB!!
+        volumeDB?.chapterList = chapterList
+
+        getDataBase().volumeDao().insertOneReplace(volumeDB!!)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        mTimer!!.cancel()
+        mTimer!!.purge()
     }
 }

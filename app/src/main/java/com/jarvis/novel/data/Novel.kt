@@ -3,7 +3,7 @@ package com.jarvis.novel.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity
+@Entity(tableName = "novel")
 data class Novel(
     val isEnd: Boolean,
     @PrimaryKey
@@ -13,5 +13,6 @@ data class Novel(
     val createdAt: String,
     val updatedAt: String,
     val thumbnailMain: String,
-    val thumbnailSection: String
+    val thumbnailSection: String,
+    var versionNumber: Int = 0
 )

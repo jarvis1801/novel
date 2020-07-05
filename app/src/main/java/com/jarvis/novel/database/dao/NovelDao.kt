@@ -21,5 +21,5 @@ interface NovelDao {
     fun delete(novel: Novel)
 
     @Query("DELETE FROM novel")
-    fun deleteAll();
+    fun deleteAll()
 }
