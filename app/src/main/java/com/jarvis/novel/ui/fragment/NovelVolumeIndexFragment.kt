@@ -48,7 +48,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
         }
     } as Observer<in String?>
 
-    private val listOberver = Observer<List<Volume>?> {
+    private val listObserver = Observer<List<Volume>?> {
         Log.d("chris", it.toString())
         if (it != null) {
             Log.d("chris", "312312132123")
@@ -93,7 +93,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
         model.mNovelId.observe(viewLifecycleOwner, novelIdObserver)
 
-        model.volumeListLiveData.observe(viewLifecycleOwner, listOberver)
+        model.volumeListLiveData.observe(viewLifecycleOwner, listObserver)
     }
 
     private fun addViewToMainContainer(volumeList: List<Volume>) {
@@ -168,6 +168,6 @@ class NovelVolumeIndexFragment : BaseFragment() {
         model.volumeListLiveData.postValue(null)
 
         model.mNovelId.removeObserver(novelIdObserver)
-        model.volumeListLiveData.removeObserver(listOberver)
+        model.volumeListLiveData.removeObserver(listObserver)
     }
 }
