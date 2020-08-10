@@ -140,8 +140,8 @@ class NovelContentFragment : BaseFragment() {
                     MotionEvent.ACTION_UP -> {
                         if (isShowBottomBar) {
                             App.instance.setTranslation(view = bottom_bar, value = 0f, duration = 500)
-                            createTimeTask()
                         }
+                        createTimeTask()
                     }
 
                     MotionEvent.ACTION_MOVE -> {

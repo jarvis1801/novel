@@ -30,63 +30,6 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
     private lateinit var novelId: String
 
-    private val novelIdObserver = Observer<String?> {
-        if (!model.mNovelId.value.isNullOrEmpty()) {
-            val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
-
-            if (updateNovelList.isNullOrEmpty()) {
-                initVolumeList()
-            } else {
-                val isCurrentNovelIdInList = updateNovelList.contains(novelId)
-                if (isCurrentNovelIdInList) {
-                    model.getVolumeList {
-                        val filterList = updateNovelList.filterNot {
-                            it == novelId
-                        }
-
-                        SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
-                    }
-                } else {
-                    initVolumeList()
-                }
-            }
-        }
-    } as Observer<in String?>
-
-    private fun initVolumeList() {
-        volumeListDB = getDataBase().volumeDao().findById(model.mNovelId.value!!)
-        if (volumeListDB.isNullOrEmpty()) {
-            model.getVolumeList()
-        } else {
-            volumeListDB = volumeListDB!!.sortedWith(compareBy {
-                it.index
-            })
-            volumeListDB!!.forEach {
-                it.chapterList = it.chapterList.sortedWith(compareBy { chapter ->
-                    chapter.index
-                })
-            }
-            model.volumeListLiveData.postValue(volumeListDB)
-        }
-    }
-
-    private val listObserver = Observer<List<Volume>?> {
-        if (it != null) {
-            val sortedList = it.sortedWith(compareBy { data ->
-                data.index
-            })
-            sortedList.forEach { volume ->
-                volume.chapterList = volume.chapterList.sortedWith(compareBy { chapter ->
-                    chapter.index
-                })
-            }
-            getDataBase().volumeDao().insertAllNotReplace(sortedList)
-            addViewToMainContainer(sortedList)
-        } else {
-            mainContainer.removeAllViews()
-        }
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_index, container, false)
 
@@ -110,14 +53,68 @@ class NovelVolumeIndexFragment : BaseFragment() {
     }
 
     private fun initLiveData() {
+        if (!model.mNovelId.hasObservers()) {
+            model.mNovelId.observe(viewLifecycleOwner, Observer {
+                if (!model.mNovelId.value.isNullOrEmpty()) {
+                    val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
 
-        model.mNovelId.removeObserver(novelIdObserver)
+                    if (updateNovelList.isNullOrEmpty()) {
+                        initVolumeList()
+                    } else {
+                        val isCurrentNovelIdInList = updateNovelList.contains(novelId)
+                        if (isCurrentNovelIdInList) {
+                            model.getVolumeList(it!!) {
+                                val filterList = updateNovelList.filterNot {
+                                    it == novelId
+                                }
 
-        model.volumeListLiveData.removeObserver(listObserver)
+                                SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
+                            }
+                        } else {
+                            initVolumeList()
+                        }
+                    }
+                }
+            })
+        }
 
-        model.mNovelId.observe(viewLifecycleOwner, novelIdObserver)
+        if (!model.volumeListLiveData.hasObservers()) {
+            model.volumeListLiveData.observe(viewLifecycleOwner, Observer {
+                Log.d("chris", "listObserver")
+                if (it != null) {
+                    Log.d("chris", " 2 listObserver")
+                    val sortedList = it.sortedWith(compareBy { data ->
+                        data.index
+                    })
+                    sortedList.forEach { volume ->
+                        volume.chapterList = volume.chapterList.sortedWith(compareBy { chapter ->
+                            chapter.index
+                        })
+                    }
+                    getDataBase().volumeDao().insertAllNotReplace(sortedList)
+                    addViewToMainContainer(sortedList)
+                } else {
+                    mainContainer.removeAllViews()
+                }
+            })
+        }
+    }
 
-        model.volumeListLiveData.observe(viewLifecycleOwner, listObserver)
+    private fun initVolumeList() {
+        volumeListDB = getDataBase().volumeDao().findById(model.mNovelId.value!!)
+        if (volumeListDB.isNullOrEmpty()) {
+            model.getVolumeList(model.mNovelId.value!!)
+        } else {
+            volumeListDB = volumeListDB!!.sortedWith(compareBy {
+                it.index
+            })
+            volumeListDB!!.forEach {
+                it.chapterList = it.chapterList.sortedWith(compareBy { chapter ->
+                    chapter.index
+                })
+            }
+            model.volumeListLiveData.postValue(volumeListDB)
+        }
     }
 
     private fun addViewToMainContainer(volumeList: List<Volume>) {
@@ -190,8 +187,5 @@ class NovelVolumeIndexFragment : BaseFragment() {
         super.onDestroyView()
         model.mNovelId.postValue(null)
         model.volumeListLiveData.postValue(null)
-
-//        model.mNovelId.removeObserver(novelIdObserver)
-//        model.volumeListLiveData.removeObserver(listObserver)
     }
 }

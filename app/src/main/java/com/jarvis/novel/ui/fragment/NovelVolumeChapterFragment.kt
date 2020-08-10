@@ -81,7 +81,7 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initView() {
-        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireContext(), childFragmentManager, lifecycle)
+        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireContext(), childFragmentManager, requireActivity().lifecycle)
         viewpager.apply {
             adapter = viewpagerAdapter
             (getChildAt(0) as RecyclerView).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
@@ -89,7 +89,6 @@ class NovelVolumeChapterFragment : BaseFragment() {
 
         TabLayoutMediator(tab_main, viewpager) { tab, position ->
             tab.text = viewpagerAdapter.fragmentTitleList[position]
-//            viewpager.setCurrentItem(tab.position, true)
         }.attach()
     }
 
