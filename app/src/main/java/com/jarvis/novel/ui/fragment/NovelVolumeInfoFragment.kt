@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import com.jarvis.novel.R
 import com.jarvis.novel.ui.base.BaseFragment
 
-class NovelVolumeInfoFragment() : BaseFragment() {
+class NovelVolumeInfoFragment : BaseFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_info, container, false)
 

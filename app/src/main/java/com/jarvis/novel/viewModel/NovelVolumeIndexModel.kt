@@ -10,6 +10,8 @@ class NovelVolumeIndexModel : ViewModel() {
 
     val mNovelId: MutableLiveData<String?> = MutableLiveData()
 
+    val mUpdateEndChapter: MutableLiveData<String?> = MutableLiveData()
+
     fun getVolumeList(novelId: String, updateVolumeCallback: () -> Unit? = {}) {
         if (mNovelId.value == null) {
             return

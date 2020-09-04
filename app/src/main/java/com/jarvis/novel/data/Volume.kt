@@ -16,5 +16,6 @@ data class Volume(
     val novelId: String,
     val createdAt: String,
     val updatedAt: String,
+    val isStickyHeader: Boolean = false,
     var versionNumber: Int = 0
 )

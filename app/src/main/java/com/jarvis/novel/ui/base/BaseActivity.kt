@@ -1,10 +1,6 @@
 package com.jarvis.novel.ui.base
 
-import android.content.Context
-import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
-import android.view.WindowManager
 import androidx.fragment.app.FragmentActivity
 import androidx.room.Room
 import com.jarvis.novel.database.AppDatabase
@@ -17,10 +13,7 @@ abstract class BaseActivity: FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mAppDatabase = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "database"
-        ).allowMainThreadQueries().build()
+        mAppDatabase = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database").build()
 
         SharedPreferenceUtil.init(this)
     }

@@ -34,12 +34,25 @@ class App : Application() {
 
         if (type == "add") {
             fragmentTransaction.add(containerLayoutId, fragment, tag)
+
+            val index = fm.backStackEntryCount - 1
+            if (index >= 0) {
+                val backEntry = fm.getBackStackEntryAt(index)
+                val hideTag = backEntry.name
+                val hideFragment = fm.findFragmentByTag(hideTag)
+
+                hideFragment?.let { fragmentTransaction.hide(it) }
+            } else {
+                fm.findFragmentByTag("main_page")?.let {
+                    fragmentTransaction.hide(it)
+                }
+            }
         } else {
             fragmentTransaction.replace(containerLayoutId, fragment, tag)
         }
 
         if (addToBackStack) {
-            fragmentTransaction.addToBackStack("")
+            fragmentTransaction.addToBackStack(tag)
         }
         fragmentTransaction.commit()
         fm.executePendingTransactions()

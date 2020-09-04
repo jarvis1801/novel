@@ -1,7 +1,6 @@
 package com.jarvis.novel.ui.activity
 
 import android.os.Bundle
-import android.util.Log
 import com.jarvis.novel.R
 import com.jarvis.novel.api.ApiRepository
 import com.jarvis.novel.core.App
@@ -49,6 +48,6 @@ class MainActivity : BaseActivity() {
     }
 
     private fun toMainFragment() {
-        App.instance.addFragment(fragment = NovelListFragment(), containerLayoutId = R.id.fragment_container, fm = supportFragmentManager, isShowAnimation = false, addToBackStack = false)
+        App.instance.addFragment(fragment = NovelListFragment(), containerLayoutId = R.id.fragment_container, fm = supportFragmentManager, type = "replace", isShowAnimation = false, addToBackStack = false, tag = "main_page")
     }
 }

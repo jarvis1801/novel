@@ -11,7 +11,7 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
         android:name=".core.App"
-        >
+        android:fullBackupContent="@xml/backup_descriptor">
         <activity android:name=".ui.activity.MainActivity"
             android:configChanges="fontScale">
             <intent-filter>

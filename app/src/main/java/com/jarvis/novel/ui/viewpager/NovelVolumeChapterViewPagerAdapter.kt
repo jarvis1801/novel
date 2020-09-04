@@ -4,7 +4,6 @@ package com.jarvis.novel.ui.viewpager
 import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -14,9 +13,7 @@ import com.jarvis.novel.ui.fragment.NovelVolumeInfoFragment
 
 class NovelVolumeChapterViewPagerAdapter(private val novelId: String, context: Context, fm: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fm, lifecycle) {
 
-    companion object {
-
-    }
+    companion object;
     private val fragmentList = arrayOf(
         NovelVolumeIndexFragment(),
         NovelVolumeInfoFragment()

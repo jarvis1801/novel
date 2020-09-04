@@ -1,13 +1,12 @@
 package com.jarvis.novel.ui.fragment
 
+import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.MergeAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -39,12 +38,14 @@ class NovelListFragment : BaseFragment() {
 
     private fun init() {
         initLiveData()
-        novelListDB = getDataBase().userDao().getAll()
-        if (novelListDB.isNullOrEmpty()) {
-            model.getNovelList()
-        } else {
-            checkNewAddAndUpdateNovel()
-        }
+        getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+            novelListDB = it ?: arrayListOf()
+            if (novelListDB.isNullOrEmpty()) {
+                model.getNovelList()
+            } else {
+                checkNewAddAndUpdateNovel()
+            }
+        })
     }
 
     private fun checkNewAddAndUpdateNovel() {
@@ -59,15 +60,19 @@ class NovelListFragment : BaseFragment() {
         if (novelIdList.size > 0) {
             model.addUpdateNovelList(novelIdList)
         } else {
-            novelListDB = getDataBase().userDao().getAll()
-            model.novelListLiveData.postValue(novelListDB)
+            getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+                novelListDB = it ?: arrayListOf()
+                model.novelListLiveData.postValue(novelListDB)
+            })
         }
     }
 
     private fun initLiveData() {
-        model.novelListLiveData.observe(viewLifecycleOwner, Observer {
+        model.novelListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
             if (it != null) {
-                getDataBase().userDao().insertAllNotReplace(it)
+                AsyncTask.execute {
+                    getDataBase().userDao().insertAllNotReplace(it)
+                }
                 val sortedList = it.sortedBy { data ->
                     data.createdAt
                 }
@@ -75,13 +80,17 @@ class NovelListFragment : BaseFragment() {
             }
         })
 
-        model.addUpdateNovelListLiveData.observe(viewLifecycleOwner, Observer {
+        model.addUpdateNovelListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
             if (it != null) {
                 if (it.isNotEmpty()) {
-                    getDataBase().userDao().insertAllReplace(it)
+                    AsyncTask.execute {
+                        getDataBase().userDao().insertAllReplace(it)
+                    }
                 }
-                novelListDB = getDataBase().userDao().getAll()
-                model.novelListLiveData.postValue(novelListDB)
+                getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+                    novelListDB = it ?: arrayListOf()
+                    model.novelListLiveData.postValue(novelListDB)
+                })
             }
         })
     }
@@ -95,7 +104,7 @@ class NovelListFragment : BaseFragment() {
     private fun initView() {
         viewManager = GridLayoutManager(requireActivity(), 3)
         novelAdapter = NovelAdapter {
-            App.instance.addFragment(createNovelVolumeChapterFragment(it), R.id.fragment_container, addToBackStack = true, fm = requireActivity().supportFragmentManager)
+            App.instance.addFragment(createNovelVolumeChapterFragment(it), R.id.fragment_container, type = "add", addToBackStack = true, fm = requireActivity().supportFragmentManager, tag = "novel_list_page")
         }
         recyclerview_novel_list?.apply {
             setHasFixedSize(true)

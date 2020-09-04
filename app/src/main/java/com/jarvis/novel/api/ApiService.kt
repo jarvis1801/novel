@@ -1,6 +1,7 @@
 package com.jarvis.novel.api
 
 import android.util.Log
+import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.data.NovelVersion
@@ -15,7 +16,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 interface MasterService {
@@ -33,7 +33,7 @@ interface MasterService {
 
     companion object Factory {
         fun retrofitService(): MasterService = Retrofit.Builder()
-            .baseUrl("http://119.236.132.61:3306/")
+            .baseUrl(App.context.getString(R.string.base_url))
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())

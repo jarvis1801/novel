@@ -3,7 +3,6 @@ package com.jarvis.novel.util
 import android.content.Context
 import android.content.SharedPreferences
 import com.jarvis.novel.data.NovelVersion
-import com.jarvis.novel.data.NovelVersionNovelIdList
 
 object SharedPreferenceUtil {
     private lateinit var mContext: Context
@@ -68,7 +67,7 @@ object SharedPreferenceUtil {
         val uniqueList = previousList.distinct()
 
         val sb = StringBuilder()
-        for (i in 0 until uniqueList.size) {
+        for (i in uniqueList.indices) {
             if (uniqueList[i].isNotEmpty()) {
                 sb.append(uniqueList[i])
                 if (i < uniqueList.size - 1) {
@@ -120,7 +119,7 @@ object SharedPreferenceUtil {
         val uniqueList = previousList.distinct()
 
         val sb = StringBuilder()
-        for (i in 0 until uniqueList.size) {
+        for (i in uniqueList.indices) {
             if (uniqueList[i].isNotEmpty()) {
                 sb.append(uniqueList[i])
                 if (i < uniqueList.size - 1) {

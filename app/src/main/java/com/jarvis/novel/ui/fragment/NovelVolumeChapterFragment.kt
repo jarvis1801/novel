@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jarvis.novel.R
@@ -37,22 +36,28 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initLiveData() {
-        model.mNovelId.observe(viewLifecycleOwner, Observer {
-            if (it.isNullOrEmpty()) {
-                childFragmentManager.popBackStackImmediate()
-                txt_is_end.textSize = 20f
-            } else {
-                model.novelLiveData.postValue(getDataBase().userDao().findById(it))
-            }
-        })
+        if (!model.mNovelId.hasObservers()) {
+            model.mNovelId.observe(viewLifecycleOwner, Observer {
+                if (it.isNullOrEmpty()) {
+                    childFragmentManager.popBackStackImmediate()
+                    txt_is_end.textSize = 20f
+                } else {
+                    getDataBase().userDao().findById(it).observeOnce(viewLifecycleOwner, Observer {
+                        model.novelLiveData.postValue(it)
+                    })
+                }
+            })
+        }
 
-        model.novelLiveData.observe(viewLifecycleOwner, Observer {
-            if (it == null) {
-                childFragmentManager.popBackStackImmediate()
-            } else {
-                updateUI(it)
-            }
-        })
+        if (!model.novelLiveData.hasObservers()) {
+            model.novelLiveData.observe(viewLifecycleOwner, Observer {
+                if (it == null) {
+                    childFragmentManager.popBackStackImmediate()
+                } else {
+                    updateUI(it)
+                }
+            })
+        }
     }
 
     private fun updateUI(novel: Novel) {
@@ -90,6 +95,13 @@ class NovelVolumeChapterFragment : BaseFragment() {
         TabLayoutMediator(tab_main, viewpager) { tab, position ->
             tab.text = viewpagerAdapter.fragmentTitleList[position]
         }.attach()
+
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        model.mNovelId.postValue(null)
+        model.novelLiveData.postValue(null)
+    }
 }
