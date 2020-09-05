@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewDelegate
@@ -80,10 +81,10 @@ class NovelVolumeProvider : ItemViewDelegate<Volume, NovelVolumeProvider.ViewHol
             textView.textSize = App.instance.pixelToDp(mContext.resources.getDimension(R.dimen.txt_size_normal).toInt()).toFloat()
             if (chapter.isRead) {
                 textView.setTextColor(Color.parseColor("#FFFFFF"))
-                textView.background = mContext.resources.getDrawable(R.drawable.bg_chapter_tag_read, null)
+                textView.background = ResourcesCompat.getDrawable(mContext.resources, R.drawable.bg_chapter_tag_read, null)
             } else {
                 textView.setTextColor(Color.parseColor("#000000"))
-                textView.background = mContext.resources.getDrawable(R.drawable.bg_chapter_tag, null)
+                textView.background = ResourcesCompat.getDrawable(mContext.resources, R.drawable.bg_chapter_tag, null)
             }
             textView.text = chapter.sectionName
             textView.layoutParams = LinearLayout.LayoutParams(

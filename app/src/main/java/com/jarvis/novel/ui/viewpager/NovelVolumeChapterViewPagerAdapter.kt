@@ -13,7 +13,6 @@ import com.jarvis.novel.ui.fragment.NovelVolumeInfoFragment
 
 class NovelVolumeChapterViewPagerAdapter(private val novelId: String, context: Context, fm: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fm, lifecycle) {
 
-    companion object;
     private val fragmentList = arrayOf(
         NovelVolumeIndexFragment(),
         NovelVolumeInfoFragment()

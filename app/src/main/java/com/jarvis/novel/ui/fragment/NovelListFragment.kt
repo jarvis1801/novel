@@ -78,6 +78,7 @@ class NovelListFragment : BaseFragment() {
                 }
                 novelAdapter?.updateList(sortedList)
             }
+            hideLoadingDialog()
         })
 
         model.addUpdateNovelListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
@@ -92,6 +93,7 @@ class NovelListFragment : BaseFragment() {
                     model.novelListLiveData.postValue(novelListDB)
                 })
             }
+            hideLoadingDialog()
         })
     }
 
@@ -104,6 +106,7 @@ class NovelListFragment : BaseFragment() {
     private fun initView() {
         viewManager = GridLayoutManager(requireActivity(), 3)
         novelAdapter = NovelAdapter {
+            showLoadingDialog()
             App.instance.addFragment(createNovelVolumeChapterFragment(it), R.id.fragment_container, type = "add", addToBackStack = true, fm = requireActivity().supportFragmentManager, tag = "novel_list_page")
         }
         recyclerview_novel_list?.apply {

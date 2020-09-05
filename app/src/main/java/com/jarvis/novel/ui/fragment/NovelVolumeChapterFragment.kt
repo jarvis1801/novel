@@ -1,6 +1,7 @@
 package com.jarvis.novel.ui.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,7 +21,7 @@ class NovelVolumeChapterFragment : BaseFragment() {
     private val model: VolumeChapterViewModel by activityViewModels()
     private lateinit var novelId: String
 
-    private lateinit var viewpagerAdapter: NovelVolumeChapterViewPagerAdapter
+    private var viewpagerAdapter: NovelVolumeChapterViewPagerAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_chapter_page, container, false)
@@ -61,9 +62,14 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun updateUI(novel: Novel) {
-        val bitmap = App.instance.base64ToBitmap(novel.thumbnailSection)
-        if (bitmap != null) {
-            img_thumbnail.setImageBitmap(bitmap)
+        novel.thumbnailSectionBlob?.let {
+            val bitmap = App.instance.byteArrayToCompressedBitmap(
+                novel.thumbnailSectionBlob,
+                App.instance.getScreenWidth()
+            )
+            if (bitmap != null) {
+                img_thumbnail.setImageBitmap(bitmap)
+            }
         }
         txt_title.text = novel.name
         txt_author.text = novel.author
@@ -86,14 +92,16 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initView() {
-        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireContext(), childFragmentManager, requireActivity().lifecycle)
+        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireActivity().applicationContext, childFragmentManager, viewLifecycleOwner.lifecycle)
         viewpager.apply {
             adapter = viewpagerAdapter
             (getChildAt(0) as RecyclerView).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
         }
 
         TabLayoutMediator(tab_main, viewpager) { tab, position ->
-            tab.text = viewpagerAdapter.fragmentTitleList[position]
+            viewpagerAdapter?.fragmentTitleList?.get(position).let {
+                tab.text = it
+            }
         }.attach()
 
     }
@@ -103,5 +111,7 @@ class NovelVolumeChapterFragment : BaseFragment() {
 
         model.mNovelId.postValue(null)
         model.novelLiveData.postValue(null)
+
+        viewpagerAdapter = null
     }
 }

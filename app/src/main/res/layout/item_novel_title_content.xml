@@ -17,6 +17,6 @@
         android:paddingBottom="@dimen/padding_normal"
         android:textColor="#000000"
         android:textAlignment="center"
-        android:text="這是一串很長很長，很長很長，很長很長的文字" />
+        tools:text="這是一串很長很長，很長很長，很長很長的文字" />
 
 </LinearLayout>

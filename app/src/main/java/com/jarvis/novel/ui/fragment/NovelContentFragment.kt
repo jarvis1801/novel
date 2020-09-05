@@ -233,10 +233,9 @@ class NovelContentFragment : BaseFragment() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
+    override fun onDestroyView() {
         mTimer!!.cancel()
         mTimer!!.purge()
+        super.onDestroyView()
     }
 }

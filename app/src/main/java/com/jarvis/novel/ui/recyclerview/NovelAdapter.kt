@@ -1,5 +1,6 @@
 package com.jarvis.novel.ui.recyclerview
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,10 +32,16 @@ class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapte
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: Novel) {
-            if (item.thumbnailMain.isNotEmpty()) {
-                val bitmap = App.instance.base64ToBitmap(item.thumbnailMain)
+            if (item.thumbnailMainBlob?.size ?: -1 > 0) {
+                val bitmap = App.instance.byteArrayToCompressedBitmap(
+                    item.thumbnailMainBlob!!,
+                    App.instance.getScreenWidth() / 3
+                )
                 if (bitmap != null) {
                     itemView.img_thumbnail.setImageBitmap(bitmap)
+
+                    Log.d("chris", bitmap.height.toString())
+                    Log.d("chris", bitmap.width.toString())
                 }
             } else {
                 itemView.img_thumbnail.setImageResource(0)

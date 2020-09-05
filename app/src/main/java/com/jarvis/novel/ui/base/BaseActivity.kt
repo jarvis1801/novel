@@ -15,7 +15,7 @@ abstract class BaseActivity: FragmentActivity() {
 
         mAppDatabase = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database").build()
 
-        SharedPreferenceUtil.init(this)
+        SharedPreferenceUtil.init(applicationContext)
     }
 
     fun getDatabase(): AppDatabase {

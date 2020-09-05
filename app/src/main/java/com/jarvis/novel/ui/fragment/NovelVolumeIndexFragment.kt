@@ -57,104 +57,112 @@ class NovelVolumeIndexFragment : BaseFragment() {
         }
     }
 
+    private val mNovelIdObserver = Observer<String?> {
+        if (!it.isNullOrEmpty()) {
+            val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
+
+            if (updateNovelList.isNullOrEmpty()) {
+                initVolumeList()
+            } else {
+                val isCurrentNovelIdInList = updateNovelList.contains(novelId)
+                if (isCurrentNovelIdInList) {
+                    model.getVolumeList(it) {
+                        val filterList = updateNovelList.filterNot {
+                            it == novelId
+                        }
+
+                        SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
+                    }
+                } else {
+                    initVolumeList()
+                }
+            }
+        }
+    }
+
+    private val volumeListObserver = Observer<List<Volume>?> {
+        novelVolumeItems.clear()
+        var tempReadVolumeIndex = 0
+        var readVolumeIndex = 0
+
+        Log.d("chris", "volumeListLiveData")
+        Log.d("chris", it.toString())
+        if (it != null) {
+
+            Log.d("chris", "not null")
+
+            val sortedList = it.sortedWith(compareBy<Volume>{ data -> data.index }.thenByDescending { data -> data.isStickyHeader }).also { list ->
+                list.forEach { volume ->
+                    volume.chapterList = volume.chapterList.sortedBy { chapter ->
+                        chapter.index
+                    }
+                }
+            }
+
+            var readVolumeId: String? = null
+
+            sortedList.forEach { volume ->
+                volume.chapterList.forEach { chapter ->
+                    if (chapter.isRead && volume.index > tempReadVolumeIndex) {
+                        tempReadVolumeIndex = volume.index
+                        readVolumeId = volume._id
+                    }
+                }
+            }
+
+            readVolumeIndex = sortedList.indexOfFirst {
+                it._id == readVolumeId
+            }
+            AsyncTask.execute {
+                getDataBase().volumeDao().insertAllReplace(sortedList)
+            }
+            novelVolumeItems.addAll(sortedList)
+            hideLoadingDialog()
+        }
+        novelVolumeAdapter.notifyDataSetChanged()
+
+        viewManager?.scrollToPositionWithOffset(readVolumeIndex, getChapterTagHeight())
+    }
+
+    private val mUpdateEndChapterObserver = Observer<String?> {
+        it?.let { id ->
+            Log.d("chris", id)
+            val list = novelVolumeItems.toList()
+            list.forEach { listItem ->
+                Log.d("chris", "1")
+                if (listItem is Volume) {
+                    Log.d("chris", "2")
+                    listItem.chapterList.forEach { chapter ->
+                        Log.d("chris", "3")
+                        if (id == chapter._id) {
+                            chapter.isRead = true
+                            Log.d("chris", "4")
+                        }
+                    }
+                }
+            }
+            novelVolumeItems.clear()
+            novelVolumeItems.addAll(list)
+            novelVolumeAdapter.notifyDataSetChanged()
+        }
+    }
+
     private fun initLiveData() {
-        if (!model.mNovelId.hasObservers()) {
-            model.mNovelId.observeWithoutOnResume(viewLifecycleOwner, Observer {
-                if (!model.mNovelId.value.isNullOrEmpty()) {
-                    val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
+//        if (!model.mNovelId.hasObservers()) {
+            model.mNovelId.observe(viewLifecycleOwner, mNovelIdObserver)
+//        }
 
-                    if (updateNovelList.isNullOrEmpty()) {
-                        initVolumeList()
-                    } else {
-                        val isCurrentNovelIdInList = updateNovelList.contains(novelId)
-                        if (isCurrentNovelIdInList) {
-                            model.getVolumeList(it!!) {
-                                val filterList = updateNovelList.filterNot {
-                                    it == novelId
-                                }
-
-                                SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
-                            }
-                        } else {
-                            initVolumeList()
-                        }
-                    }
-                }
-            })
-        }
-
-        if (!model.volumeListLiveData.hasObservers()) {
-            model.volumeListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
-                novelVolumeItems.clear()
-                var tempReadVolumeIndex = 0
-                var readVolumeIndex = 0
-
-                Log.d("chris", "volumeListLiveData")
-                if (it != null) {
-
-                    Log.d("chris", "not null")
-
-                    val sortedList = it.sortedWith(compareBy<Volume>{ data -> data.index }.thenByDescending { data -> data.isStickyHeader }).also { list ->
-                        list.forEach { volume ->
-                            volume.chapterList = volume.chapterList.sortedBy { chapter ->
-                                chapter.index
-                            }
-                        }
-                    }
-
-                    var readVolumeId: String? = null
-
-                    sortedList.forEach { volume ->
-                        volume.chapterList.forEach { chapter ->
-                            if (chapter.isRead && volume.index > tempReadVolumeIndex) {
-                                tempReadVolumeIndex = volume.index
-                                readVolumeId = volume._id
-                            }
-                        }
-                    }
-
-                    readVolumeIndex = sortedList.indexOfFirst {
-                        it._id == readVolumeId
-                    }
-                    AsyncTask.execute {
-                        getDataBase().volumeDao().insertAllReplace(sortedList)
-                    }
-                    novelVolumeItems.addAll(sortedList)
-                }
-                novelVolumeAdapter.notifyDataSetChanged()
-
-                viewManager?.scrollToPositionWithOffset(readVolumeIndex, getChapterTagHeight())
-            })
-        }
+//        if (!model.volumeListLiveData.hasObservers()) {
+            model.volumeListLiveData.observe(viewLifecycleOwner, volumeListObserver)
+//        }
 
         if (!model.mUpdateEndChapter.hasObservers()) {
-            model.mUpdateEndChapter.observe(viewLifecycleOwner, Observer {
-                it?.let { id ->
-                    Log.d("chris", id)
-                    val list = novelVolumeItems.toList()
-                    list.forEach { listItem ->
-                        Log.d("chris", "1")
-                        if (listItem is Volume) {
-                            Log.d("chris", "2")
-                            listItem.chapterList.forEach { chapter ->
-                                Log.d("chris", "3")
-                                if (id == chapter._id) {
-                                    chapter.isRead = true
-                                    Log.d("chris", "4")
-                                }
-                            }
-                        }
-                    }
-                    novelVolumeItems.clear()
-                    novelVolumeItems.addAll(list)
-                    novelVolumeAdapter.notifyDataSetChanged()
-                }
-            })
+            model.mUpdateEndChapter.observe(viewLifecycleOwner, mUpdateEndChapterObserver)
         }
     }
 
     private fun getChapterTagHeight(): Int {
-        val textView = TextView(requireContext())
+        val textView = TextView(requireActivity().applicationContext)
         textView.textSize = 20f
         textView.setTextColor(Color.parseColor("#000000"))
         textView.text = "123"

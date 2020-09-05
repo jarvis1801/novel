@@ -1,6 +1,8 @@
 package com.jarvis.novel.ui.activity
 
 import android.os.Bundle
+import android.view.View
+import androidx.core.view.isVisible
 import com.jarvis.novel.R
 import com.jarvis.novel.api.ApiRepository
 import com.jarvis.novel.core.App
@@ -8,12 +10,17 @@ import com.jarvis.novel.data.NovelVersion
 import com.jarvis.novel.ui.base.BaseActivity
 import com.jarvis.novel.ui.fragment.NovelListFragment
 import com.jarvis.novel.util.SharedPreferenceUtil
+import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.ref.WeakReference
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        App.mainActivityContext = WeakReference(this)
+
+        showLoadingDialog()
 
         ApiRepository().getNovelVersionList(complete = {
 
@@ -49,5 +56,20 @@ class MainActivity : BaseActivity() {
 
     private fun toMainFragment() {
         App.instance.addFragment(fragment = NovelListFragment(), containerLayoutId = R.id.fragment_container, fm = supportFragmentManager, type = "replace", isShowAnimation = false, addToBackStack = false, tag = "main_page")
+    }
+
+    fun showLoadingDialog() {
+        loading_dialog.visibility = View.VISIBLE
+    }
+
+    fun hideLoadingDialog() {
+        loading_dialog.visibility = View.GONE
+    }
+
+    override fun onBackPressed() {
+        if (loading_dialog.isVisible) {
+            return
+        }
+        super.onBackPressed()
     }
 }

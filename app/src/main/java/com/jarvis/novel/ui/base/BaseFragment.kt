@@ -44,4 +44,20 @@ abstract class BaseFragment : Fragment(), LifecycleObserver {
 
         isBlockObserve = true
     }
+
+    override fun onDetach() {
+        super.onDetach()
+
+        System.gc()
+    }
+
+    fun showLoadingDialog() {
+        val mainActivity = requireActivity() as MainActivity
+        mainActivity.showLoadingDialog()
+    }
+
+    fun hideLoadingDialog() {
+        val mainActivity = requireActivity() as MainActivity
+        mainActivity.hideLoadingDialog()
+    }
 }

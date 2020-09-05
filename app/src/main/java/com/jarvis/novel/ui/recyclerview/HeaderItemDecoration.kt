@@ -91,19 +91,10 @@ class HeaderItemDecoration(parent: RecyclerView, private val shouldFadeOutHeader
         if (!shouldFadeOutHeader) {
             c.clipRect(0, paddingTop, c.width, paddingTop + currentHeader.height)
         } else {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                c.saveLayerAlpha(
-                    RectF(0f, 0f, c.width.toFloat(), c.height.toFloat()),
-                    (((nextHeader.top - paddingTop) / nextHeader.height.toFloat()) * 255).toInt()
-                )
-            } else {
-                c.saveLayerAlpha(
-                    0f, 0f, c.width.toFloat(), c.height.toFloat(),
-                    (((nextHeader.top - paddingTop) / nextHeader.height.toFloat()) * 255).toInt(),
-                    Canvas.ALL_SAVE_FLAG
-                )
-            }
-
+            c.saveLayerAlpha(
+                RectF(0f, 0f, c.width.toFloat(), c.height.toFloat()),
+                (((nextHeader.top - paddingTop) / nextHeader.height.toFloat()) * 255).toInt()
+            )
         }
         c.translate(0f, (nextHeader.top - currentHeader.height).toFloat() /*+ paddingTop*/)
 
