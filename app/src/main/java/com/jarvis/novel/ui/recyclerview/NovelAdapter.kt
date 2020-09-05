@@ -39,9 +39,6 @@ class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapte
                 )
                 if (bitmap != null) {
                     itemView.img_thumbnail.setImageBitmap(bitmap)
-
-                    Log.d("chris", bitmap.height.toString())
-                    Log.d("chris", bitmap.width.toString())
                 }
             } else {
                 itemView.img_thumbnail.setImageResource(0)

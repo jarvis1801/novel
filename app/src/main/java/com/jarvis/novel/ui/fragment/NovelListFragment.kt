@@ -2,6 +2,7 @@ package com.jarvis.novel.ui.fragment
 
 import android.os.AsyncTask
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,12 +11,14 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.MergeAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.NovelAdapter
 import com.jarvis.novel.util.SharedPreferenceUtil
+import com.jarvis.novel.viewModel.NetworkViewModel
 import com.jarvis.novel.viewModel.NovelViewModel
 import kotlinx.android.synthetic.main.fragment_novel.*
 
@@ -25,8 +28,11 @@ class NovelListFragment : BaseFragment() {
     private var viewManager: RecyclerView.LayoutManager? = null
 
     private val model: NovelViewModel by activityViewModels()
+    private val networkViewModel: NetworkViewModel by activityViewModels()
 
     private var novelListDB: List<Novel> = arrayListOf()
+
+    private var snackbar: Snackbar? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel, container, false)
@@ -94,6 +100,17 @@ class NovelListFragment : BaseFragment() {
                 })
             }
             hideLoadingDialog()
+        })
+
+        networkViewModel.networkStatus.observe(viewLifecycleOwner, Observer {
+            snackbar?.dismiss()
+            if (it == NetworkViewModel.ON_CONNECT) {
+                snackbar = Snackbar.make(requireView(), "已連接", Snackbar.LENGTH_LONG)
+                snackbar?.show()
+            } else if (it == NetworkViewModel.NO_NETWORK) {
+                snackbar = Snackbar.make(requireView(), "網絡中斷", Snackbar.LENGTH_LONG)
+                snackbar?.show()
+            }
         })
     }
 

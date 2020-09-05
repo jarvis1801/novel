@@ -1,14 +1,18 @@
 package com.jarvis.novel.core
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -97,18 +101,32 @@ class App : Application() {
         return byteArrayToBitmap(outputStream.toByteArray())
     }
 
+    @Suppress("DEPRECATION")
+    @TargetApi(Build.VERSION_CODES.R)
     fun getScreenWidth(): Int {
-        val activity = mainActivityContext.get() as MainActivity
-        val displayMetrics = DisplayMetrics()
-        activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
-        return displayMetrics.widthPixels
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val activity = mainActivityContext.get() as MainActivity
+            activity.windowManager.currentWindowMetrics.bounds.width()
+        } else {
+            val activity = mainActivityContext.get() as MainActivity
+            val displayMetrics = DisplayMetrics()
+            activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+            displayMetrics.widthPixels
+        }
     }
 
+    @Suppress("DEPRECATION")
+    @TargetApi(Build.VERSION_CODES.R)
     fun getScreenHeight(): Int {
-        val activity = mainActivityContext.get() as MainActivity
-        val displayMetrics = DisplayMetrics()
-        activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
-        return displayMetrics.heightPixels
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val activity = mainActivityContext.get() as MainActivity
+            activity.windowManager.currentWindowMetrics.bounds.height()
+        } else {
+            val activity = mainActivityContext.get() as MainActivity
+            val displayMetrics = DisplayMetrics()
+            activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+            displayMetrics.heightPixels
+        }
     }
 
     fun pixelToDp(px: Int): Int {

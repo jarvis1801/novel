@@ -85,12 +85,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
         var tempReadVolumeIndex = 0
         var readVolumeIndex = 0
 
-        Log.d("chris", "volumeListLiveData")
-        Log.d("chris", it.toString())
         if (it != null) {
-
-            Log.d("chris", "not null")
-
             val sortedList = it.sortedWith(compareBy<Volume>{ data -> data.index }.thenByDescending { data -> data.isStickyHeader }).also { list ->
                 list.forEach { volume ->
                     volume.chapterList = volume.chapterList.sortedBy { chapter ->
@@ -126,17 +121,12 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
     private val mUpdateEndChapterObserver = Observer<String?> {
         it?.let { id ->
-            Log.d("chris", id)
             val list = novelVolumeItems.toList()
             list.forEach { listItem ->
-                Log.d("chris", "1")
                 if (listItem is Volume) {
-                    Log.d("chris", "2")
                     listItem.chapterList.forEach { chapter ->
-                        Log.d("chris", "3")
                         if (id == chapter._id) {
                             chapter.isRead = true
-                            Log.d("chris", "4")
                         }
                     }
                 }
