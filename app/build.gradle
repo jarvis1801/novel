@@ -3,7 +3,20 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
+def props = new Properties()
+file("../local.properties").withInputStream {
+    props.load(it)
+}
+
 android {
+    signingConfigs {
+        sign {
+            storeFile file(props.getProperty("STORE_FILE_NAME"))
+            storePassword props.getProperty("KEYSTORE_PASSWORD")
+            keyAlias props.getProperty("STORE_ALIAS")
+            keyPassword props.getProperty("KEY_PASSWORD")
+        }
+    }
     compileSdkVersion 30
     buildToolsVersion "30.0.2"
     ndkVersion '21.3.6528147'
@@ -22,6 +35,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.sign
         }
     }
 

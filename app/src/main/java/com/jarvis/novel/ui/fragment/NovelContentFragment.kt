@@ -1,15 +1,14 @@
 package com.jarvis.novel.ui.fragment
 
-import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +24,8 @@ import com.jarvis.novel.ui.recyclerview.NovelTitleContentProvider
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NovelContentViewModel
 import com.jarvis.novel.viewModel.NovelVolumeIndexModel
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_novel_content.*
 import java.util.*
 
@@ -62,7 +63,7 @@ class NovelContentFragment : BaseFragment() {
             mTimer!!.cancel()
             mTimer!!.purge()
         }
-        mHandler = Handler()
+        mHandler = Handler(Looper.getMainLooper())
         mTimer = Timer()
         mTimerTask = object : TimerTask() {
             override fun run() {
@@ -91,7 +92,7 @@ class NovelContentFragment : BaseFragment() {
         val chapterId = requireArguments().getString("chapterId", null)
         val volumeId = requireArguments().getString("volumeId", null)
         if (volumeId != null && chapterId != null) {
-            getDataBase().volumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, Observer {
+            getDataBase().volumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, {
                 volumeDB = it
                 if (volumeDB != null) {
                     volumeDB!!.chapterList.forEach {
@@ -111,7 +112,7 @@ class NovelContentFragment : BaseFragment() {
     }
 
     private fun initLiveData() {
-        model.chapterLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
+        model.chapterLiveData.observeWithoutOnResume(viewLifecycleOwner, {
             if (it != null) {
                 scrolledY = it.positionY
                 novelContentItems.clear()
@@ -217,8 +218,7 @@ class NovelContentFragment : BaseFragment() {
     override fun onPause() {
         super.onPause()
 
-        var chapterIndex: Int? = null
-        chapterIndex = volumeDB?.chapterList?.indexOf(chapterDB)
+        val chapterIndex: Int? = volumeDB?.chapterList?.indexOf(chapterDB)
 
         val chapterList = mutableListOf<Chapter>()
         chapterList.addAll(volumeDB?.chapterList!!)
@@ -228,9 +228,16 @@ class NovelContentFragment : BaseFragment() {
         chapterList[chapterIndex!!] = chapterDB!!
         volumeDB?.chapterList = chapterList
 
-        AsyncTask.execute {
-            getDataBase().volumeDao().insertOneReplace(volumeDB!!)
-        }
+        insertOneReplace(volumeDB!!)
+    }
+
+    private fun insertOneReplace(volumeDB: Volume) {
+        val observable = Observable.fromCallable {
+            getDataBase().volumeDao().insertOneReplace(volumeDB)
+        }.subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+
+        compositeDisposable.add(observable)
     }
 
     override fun onDestroyView() {

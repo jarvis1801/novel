@@ -1,6 +1,7 @@
 package com.jarvis.novel.ui.recyclerview
 
-import android.util.Log
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,8 +13,10 @@ import kotlinx.android.synthetic.main.item_novel.view.*
 
 class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapter<NovelAdapter.ViewHolder>() {
     private var mData: List<Novel> = arrayListOf()
+    private lateinit var mContext: Context
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        mContext = parent.context
         return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_novel, parent, false))
     }
 
@@ -32,21 +35,39 @@ class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapte
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bind(item: Novel) {
-            if (item.thumbnailMainBlob?.size ?: -1 > 0) {
-                val bitmap = App.instance.byteArrayToCompressedBitmap(
-                    item.thumbnailMainBlob!!,
-                    App.instance.getScreenWidth() / 3
-                )
-                if (bitmap != null) {
-                    itemView.img_thumbnail.setImageBitmap(bitmap)
+            when (App.instance.isShowThumbnail) {
+                true -> {
+                    if (item.thumbnailMainBlob?.size ?: -1 > 0) {
+                        val bitmap = App.instance.byteArrayToCompressedBitmap(
+                            item.thumbnailMainBlob!!,
+                            App.instance.getScreenWidth() / 3
+                        )
+                        bitmap?.let {
+                            itemView.img_thumbnail.setImageBitmap(bitmap)
+                        } ?: createPlaceholder()
+                    } else {
+                        createPlaceholder()
+                    }
                 }
-            } else {
-                itemView.img_thumbnail.setImageResource(0)
+                false -> createPlaceholder()
             }
+
+
             itemView.img_thumbnail.setOnClickListener {
                 onItemClick(item)
             }
             itemView.txt_title.text = item.name
         }
+
+        private fun createPlaceholder() {
+            itemView.img_thumbnail.setImageBitmap(App.instance.compressedBitmap(
+                BitmapFactory.decodeResource(
+                    mContext.resources,
+                    R.drawable.placeholder
+                ),
+                App.instance.getScreenWidth() / 3
+            ))
+        }
     }
+
 }

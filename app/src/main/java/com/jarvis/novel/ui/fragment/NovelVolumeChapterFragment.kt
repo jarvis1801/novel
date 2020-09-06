@@ -1,12 +1,11 @@
 package com.jarvis.novel.ui.fragment
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jarvis.novel.R
@@ -38,20 +37,20 @@ class NovelVolumeChapterFragment : BaseFragment() {
 
     private fun initLiveData() {
         if (!model.mNovelId.hasObservers()) {
-            model.mNovelId.observe(viewLifecycleOwner, Observer {
+            model.mNovelId.observe(viewLifecycleOwner, {
                 if (it.isNullOrEmpty()) {
                     childFragmentManager.popBackStackImmediate()
                     txt_is_end.textSize = 20f
                 } else {
-                    getDataBase().userDao().findById(it).observeOnce(viewLifecycleOwner, Observer {
-                        model.novelLiveData.postValue(it)
+                    getDataBase().userDao().findById(it).observeOnce(viewLifecycleOwner, { novel ->
+                        model.novelLiveData.postValue(novel)
                     })
                 }
             })
         }
 
         if (!model.novelLiveData.hasObservers()) {
-            model.novelLiveData.observe(viewLifecycleOwner, Observer {
+            model.novelLiveData.observe(viewLifecycleOwner, {
                 if (it == null) {
                     childFragmentManager.popBackStackImmediate()
                 } else {
@@ -62,15 +61,24 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun updateUI(novel: Novel) {
-        novel.thumbnailSectionBlob?.let {
-            val bitmap = App.instance.byteArrayToCompressedBitmap(
-                novel.thumbnailSectionBlob,
-                App.instance.getScreenWidth()
-            )
-            if (bitmap != null) {
-                img_thumbnail.setImageBitmap(bitmap)
+        when (App.instance.isShowThumbnail) {
+            true -> {
+                novel.thumbnailSectionBlob?.let {
+                    val bitmap = App.instance.byteArrayToCompressedBitmap(
+                        novel.thumbnailSectionBlob,
+                        App.instance.getScreenWidth()
+                    )
+                    bitmap?.let {
+                        img_thumbnail.setImageBitmap(bitmap)
+                    } ?: createPlaceholder()
+
+                } ?: run {
+                    createPlaceholder()
+                }
             }
+            false -> createPlaceholder()
         }
+
         txt_title.text = novel.name
         txt_author.text = novel.author
 
@@ -78,6 +86,16 @@ class NovelVolumeChapterFragment : BaseFragment() {
             true -> txt_is_end.text = "已完結"
             else -> txt_is_end.text = "未完結"
         }
+    }
+
+    private fun createPlaceholder() {
+        img_thumbnail.setImageBitmap(App.instance.compressedBitmap(
+            BitmapFactory.decodeResource(
+                resources,
+                R.drawable.placeholder
+            ),
+            App.instance.getScreenWidth()
+        ))
     }
 
     private fun getArgs() {

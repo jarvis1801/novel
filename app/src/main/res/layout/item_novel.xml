@@ -16,7 +16,7 @@
         android:id="@+id/cardview_img"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintDimensionRatio="9:12"
+        app:layout_constraintDimensionRatio="9:13"
         app:layout_constraintTop_toTopOf="parent"
         card_view:cardCornerRadius="4dp"
         card_view:cardElevation="0dp">

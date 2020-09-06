@@ -6,8 +6,10 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.OnLifecycleEvent
 
 
 class ConnectivityMonitor(context: Context, lifecycleOwner: LifecycleOwner, private val callback: (Boolean) -> Unit) : LifecycleObserver {

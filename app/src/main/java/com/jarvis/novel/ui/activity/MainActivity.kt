@@ -10,11 +10,11 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.NovelVersion
 import com.jarvis.novel.ui.base.BaseActivity
 import com.jarvis.novel.ui.fragment.NovelListFragment
+import com.jarvis.novel.util.ConnectivityMonitor
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NetworkViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.ref.WeakReference
-import com.jarvis.novel.util.ConnectivityMonitor
 
 
 class MainActivity : BaseActivity() {

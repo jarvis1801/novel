@@ -1,13 +1,10 @@
 package com.jarvis.novel.ui.fragment
 
-import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.MergeAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -20,6 +17,8 @@ import com.jarvis.novel.ui.recyclerview.NovelAdapter
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NetworkViewModel
 import com.jarvis.novel.viewModel.NovelViewModel
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_novel.*
 
 class NovelListFragment : BaseFragment() {
@@ -44,7 +43,7 @@ class NovelListFragment : BaseFragment() {
 
     private fun init() {
         initLiveData()
-        getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+        getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
             novelListDB = it ?: arrayListOf()
             if (novelListDB.isNullOrEmpty()) {
                 model.getNovelList()
@@ -66,7 +65,7 @@ class NovelListFragment : BaseFragment() {
         if (novelIdList.size > 0) {
             model.addUpdateNovelList(novelIdList)
         } else {
-            getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+            getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
                 novelListDB = it ?: arrayListOf()
                 model.novelListLiveData.postValue(novelListDB)
             })
@@ -74,11 +73,10 @@ class NovelListFragment : BaseFragment() {
     }
 
     private fun initLiveData() {
-        model.novelListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
+        model.novelListLiveData.observeWithoutOnResume(viewLifecycleOwner, {
             if (it != null) {
-                AsyncTask.execute {
-                    getDataBase().userDao().insertAllNotReplace(it)
-                }
+                insertAllUserNotReplace(it)
+
                 val sortedList = it.sortedBy { data ->
                     data.createdAt
                 }
@@ -87,14 +85,12 @@ class NovelListFragment : BaseFragment() {
             hideLoadingDialog()
         })
 
-        model.addUpdateNovelListLiveData.observeWithoutOnResume(viewLifecycleOwner, Observer {
+        model.addUpdateNovelListLiveData.observeWithoutOnResume(viewLifecycleOwner, {
             if (it != null) {
                 if (it.isNotEmpty()) {
-                    AsyncTask.execute {
-                        getDataBase().userDao().insertAllReplace(it)
-                    }
+                    insertAllReplace(it)
                 }
-                getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, Observer {
+                getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
                     novelListDB = it ?: arrayListOf()
                     model.novelListLiveData.postValue(novelListDB)
                 })
@@ -102,7 +98,7 @@ class NovelListFragment : BaseFragment() {
             hideLoadingDialog()
         })
 
-        networkViewModel.networkStatus.observe(viewLifecycleOwner, Observer {
+        networkViewModel.networkStatus.observe(viewLifecycleOwner, {
             snackbar?.dismiss()
             if (it == NetworkViewModel.ON_CONNECT) {
                 snackbar = Snackbar.make(requireView(), "已連接", Snackbar.LENGTH_LONG)
@@ -112,6 +108,24 @@ class NovelListFragment : BaseFragment() {
                 snackbar?.show()
             }
         })
+    }
+
+    private fun insertAllReplace(it: List<Novel>) {
+        val observable = Observable.fromCallable {
+            getDataBase().userDao().insertAllReplace(it)
+        }.subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+
+        compositeDisposable.add(observable)
+    }
+
+    private fun insertAllUserNotReplace(it: List<Novel>) {
+        val observable = Observable.fromCallable {
+            getDataBase().userDao().insertAllNotReplace(it)
+        }.subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+
+        compositeDisposable.add(observable)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

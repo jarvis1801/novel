@@ -1,6 +1,5 @@
 package com.jarvis.novel.data
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -13,9 +12,7 @@ data class Novel(
     val author: String,
     val createdAt: String,
     val updatedAt: String,
-//    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
     val thumbnailMainBlob: ByteArray?,
-//    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
     val thumbnailSectionBlob: ByteArray?,
     var versionNumber: Int = 0
 ) {

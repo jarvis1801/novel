@@ -46,9 +46,9 @@ interface MasterService {
 
             return OkHttpClient.Builder()
                 .addInterceptor(
-                    HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message ->
+                    HttpLoggingInterceptor { message ->
                         Log.d("OkHttp", "log: $message")
-                    }).setLevel(
+                    }.setLevel(
                         HttpLoggingInterceptor.Level.BODY
                     )
                 )

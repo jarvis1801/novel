@@ -3,9 +3,7 @@ package com.jarvis.novel.ui.fragment
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import android.os.AsyncTask
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +20,8 @@ import com.jarvis.novel.ui.recyclerview.HeaderItemDecoration
 import com.jarvis.novel.ui.recyclerview.NovelVolumeProvider
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NovelVolumeIndexModel
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_novel_volume_index.*
 
 class NovelVolumeIndexFragment : BaseFragment() {
@@ -108,15 +108,25 @@ class NovelVolumeIndexFragment : BaseFragment() {
             readVolumeIndex = sortedList.indexOfFirst {
                 it._id == readVolumeId
             }
-            AsyncTask.execute {
-                getDataBase().volumeDao().insertAllReplace(sortedList)
-            }
+
+            insertAllVolumeReplace(sortedList)
             novelVolumeItems.addAll(sortedList)
             hideLoadingDialog()
         }
         novelVolumeAdapter.notifyDataSetChanged()
 
-        viewManager?.scrollToPositionWithOffset(readVolumeIndex, getChapterTagHeight())
+        if (tempReadVolumeIndex != 0) {
+            viewManager?.scrollToPositionWithOffset(readVolumeIndex, getChapterTagHeight())
+        }
+    }
+
+    private fun insertAllVolumeReplace(sortedList: List<Volume>) {
+        val observable = Observable.fromCallable {
+            getDataBase().volumeDao().insertAllReplace(sortedList)
+        }.subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+
+        compositeDisposable.add(observable)
     }
 
     private val mUpdateEndChapterObserver = Observer<String?> {
@@ -149,6 +159,15 @@ class NovelVolumeIndexFragment : BaseFragment() {
         if (!model.mUpdateEndChapter.hasObservers()) {
             model.mUpdateEndChapter.observe(viewLifecycleOwner, mUpdateEndChapterObserver)
         }
+
+        if (!model.mHideLoadingDialog.hasObservers()) {
+            model.mHideLoadingDialog.observe(viewLifecycleOwner, {
+                if (it == true) {
+                    hideLoadingDialog()
+                    model.mHideLoadingDialog.postValue(false)
+                }
+            })
+        }
     }
 
     private fun getChapterTagHeight(): Int {
@@ -167,7 +186,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
     }
 
     private fun initVolumeList() {
-        getDataBase().volumeDao().findById(model.mNovelId.value!!).observeOnce(viewLifecycleOwner, Observer {
+        getDataBase().volumeDao().findById(model.mNovelId.value!!).observeOnce(viewLifecycleOwner, {
             volumeListDB = it
             if (volumeListDB.isNullOrEmpty()) {
                 model.getVolumeList(model.mNovelId.value!!)
@@ -217,7 +236,6 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        model.mNovelId.postValue(null)
-        model.volumeListLiveData.postValue(null)
+        model.reset()
     }
 }

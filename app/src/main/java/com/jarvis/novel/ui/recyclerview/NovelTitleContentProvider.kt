@@ -2,6 +2,7 @@ package com.jarvis.novel.ui.recyclerview
 
 import android.content.Context
 import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,7 +37,7 @@ class NovelTitleContentProvider: ItemViewDelegate<String, NovelTitleContentProvi
             txt_title.text = title
             txt_title.textSize = App.instance.pixelToDp(context.resources.getDimension(R.dimen.txt_size_normal).toInt()) * SharedPreferenceUtil.getFontScale()
 
-            Handler().postDelayed({
+            Handler(Looper.getMainLooper()).postDelayed({
                 txt_title.isSelected = true
             }, 2000)
         }

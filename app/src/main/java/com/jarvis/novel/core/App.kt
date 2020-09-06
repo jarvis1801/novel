@@ -1,7 +1,6 @@
 package com.jarvis.novel.core
 
 import android.animation.ObjectAnimator
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Application
 import android.content.Context
@@ -10,9 +9,7 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
@@ -24,6 +21,8 @@ import java.nio.ByteBuffer
 
 
 class App : Application() {
+    var isShowThumbnail = true
+
     companion object {
         val instance: App = App()
         lateinit var context: Context
@@ -79,7 +78,7 @@ class App : Application() {
         return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
     }
 
-    fun byteArrayToBitmap(byteArray: ByteArray): Bitmap? {
+    private fun byteArrayToBitmap(byteArray: ByteArray): Bitmap? {
         val buf: ByteBuffer = ByteBuffer.wrap(byteArray)
         val imageBytes = ByteArray(buf.remaining())
         buf[imageBytes]
@@ -99,6 +98,18 @@ class App : Application() {
         outputStream.close()
 
         return byteArrayToBitmap(outputStream.toByteArray())
+    }
+
+    fun compressedBitmap(bitmap: Bitmap, newWidth: Int): Bitmap? {
+        val scale = 1 - (bitmap.width - newWidth) / bitmap.width.toDouble()
+        val newHeight = (bitmap.height * scale).toInt()
+        val scaleBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
+
+        val outputStream = ByteArrayOutputStream()
+
+        scaleBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+
+        return scaleBitmap
     }
 
     @Suppress("DEPRECATION")
