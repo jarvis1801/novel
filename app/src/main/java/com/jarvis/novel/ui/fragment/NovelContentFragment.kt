@@ -3,6 +3,7 @@ package com.jarvis.novel.ui.fragment
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -50,6 +51,8 @@ class NovelContentFragment : BaseFragment() {
 
     private var isScrollEndOnce = false
 
+    private var measureWidth = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -92,7 +95,7 @@ class NovelContentFragment : BaseFragment() {
         val chapterId = requireArguments().getString("chapterId", null)
         val volumeId = requireArguments().getString("volumeId", null)
         if (volumeId != null && chapterId != null) {
-            getDataBase().volumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, {
+            getDataBase().novelVolumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, {
                 volumeDB = it
                 if (volumeDB != null) {
                     volumeDB!!.chapterList.forEach {
@@ -197,6 +200,10 @@ class NovelContentFragment : BaseFragment() {
                         }
                     }
                 }
+
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                }
             })
         }
 
@@ -233,7 +240,7 @@ class NovelContentFragment : BaseFragment() {
 
     private fun insertOneReplace(volumeDB: Volume) {
         val observable = Observable.fromCallable {
-            getDataBase().volumeDao().insertOneReplace(volumeDB)
+            getDataBase().novelVolumeDao().insertOneReplace(volumeDB)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 

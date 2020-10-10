@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<!--    <com.cooltechworks.views.shimmer.ShimmerRecyclerView-->
+<!--        android:id="@+id/recyclerview_preload"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        app:shimmer_demo_child_count="4"-->
+<!--        app:shimmer_demo_layout_manager_type="linear_vertical"-->
+<!--        app:shimmer_demo_layout="@layout/preload_item_novel_volume_index"-->
+<!--        app:shimmer_demo_shimmer_color="#000"-->
+<!--        app:shimmer_demo_angle="20"-->
+<!--        />-->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview_novel_volume"
@@ -12,4 +23,4 @@
         />
 
 
-</LinearLayout>
+</FrameLayout>

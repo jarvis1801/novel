@@ -18,6 +18,8 @@ class NovelViewModel : ViewModel() {
     var addUpdateNovelListLiveData: MutableLiveData<List<Novel>?> = MutableLiveData()
     var mAddUpdateNovelList: MutableList<Novel> = mutableListOf()
 
+    var isShowThumbnail: MutableLiveData<Boolean?> = MutableLiveData()
+
     fun getNovelList() {
         ApiRepository().getNovelList(
             complete = {
@@ -69,6 +71,7 @@ class NovelViewModel : ViewModel() {
                 }
 
                 override fun onError(e: Throwable) {
+                    addUpdateNovelListLiveData.postValue(mAddUpdateNovelList)
                 }
 
             })

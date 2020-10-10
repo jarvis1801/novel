@@ -12,6 +12,9 @@ object SharedPreferenceUtil {
     private const val TYPE_NOVEL_VERSION = "NOVEL_VERSION"
     private const val TYPE_ADD_NOVEL_LIST = "ADD_NOVEL_LIST"
     private const val TYPE_UPDATE_NOVEL_LIST = "UPDATE_NOVEL_LIST"
+    private const val TYPE_IS_GET_FROM_API = "IS_GET_FROM_API"
+
+    private const val TYPE_IS_SHOW_THUMBNAIL = "IS_SHOW_THUMBNAIL"
 
     fun init(context: Context) {
         mContext = context
@@ -35,6 +38,16 @@ object SharedPreferenceUtil {
         editor.commit()
     }
 
+    fun getIsShowThumbnail(): Boolean {
+        return getSharedPreferences().getBoolean(TYPE_IS_SHOW_THUMBNAIL, true)
+    }
+
+    fun setIsShowThumbnail(isShowThumbnail: Boolean) {
+        val editor = getSharedPreferencesEditor()
+        editor.putBoolean(TYPE_IS_SHOW_THUMBNAIL, isShowThumbnail)
+        editor.commit()
+    }
+
     fun getNovelVersion(): Int {
         return getSharedPreferences().getInt(TYPE_NOVEL_VERSION, 0)
     }
@@ -42,6 +55,16 @@ object SharedPreferenceUtil {
     fun setNovelVersion(novelVersion: Int) {
         val editor = getSharedPreferencesEditor()
         editor.putInt(TYPE_NOVEL_VERSION, novelVersion)
+        editor.commit()
+    }
+
+    fun getIsGetFromAPI(): Boolean {
+        return getSharedPreferences().getBoolean(TYPE_IS_GET_FROM_API, true)
+    }
+
+    fun setIsGetFromAPI(isGetFromAPI: Boolean) {
+        val editor = getSharedPreferencesEditor()
+        editor.putBoolean(TYPE_IS_GET_FROM_API, isGetFromAPI)
         editor.commit()
     }
 

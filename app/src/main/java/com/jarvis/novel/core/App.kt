@@ -10,9 +10,13 @@ import android.os.Build
 import android.util.Base64
 import android.util.DisplayMetrics
 import android.view.View
+import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.MutableLiveData
+import com.bumptech.glide.Glide
 import com.jarvis.novel.R
 import com.jarvis.novel.ui.activity.MainActivity
 import java.io.ByteArrayOutputStream
@@ -65,7 +69,7 @@ class App : Application() {
         if (addToBackStack) {
             fragmentTransaction.addToBackStack(tag)
         }
-        fragmentTransaction.commit()
+        fragmentTransaction.commitAllowingStateLoss()
         fm.executePendingTransactions()
     }
 
@@ -154,5 +158,11 @@ class App : Application() {
         val animation = ObjectAnimator.ofFloat(view, type, value)
         animation.duration = duration
         animation.start()
+    }
+
+    fun loadPlaceHolder(context: Context, imgView: ImageView) {
+        Glide.with(context)
+            .load(ContextCompat.getDrawable(context, R.drawable.placeholder))
+            .into(imgView)
     }
 }

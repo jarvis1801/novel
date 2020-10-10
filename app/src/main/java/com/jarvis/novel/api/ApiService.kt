@@ -3,9 +3,7 @@ package com.jarvis.novel.api
 import android.util.Log
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
-import com.jarvis.novel.data.Novel
-import com.jarvis.novel.data.NovelVersion
-import com.jarvis.novel.data.Volume
+import com.jarvis.novel.data.*
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -30,6 +28,15 @@ interface MasterService {
 
     @GET("api/novelVersionList")
     fun getNovelVersionList(): Observable<Response<List<NovelVersion>?>>
+
+    @GET("api/mangaList")
+    fun getMangaList(): Observable<Response<List<Manga>>>
+
+    @GET("api/manga/{mangaId}")
+    fun getMangaById(@Path("mangaId") mangaId: String): Observable<Response<Manga>>
+
+    @GET("api/mangaVolumeList/{mangaId}")
+    fun getMangaVolumeList(@Path("mangaId") mangaId: String): Observable<Response<List<MangaVolume>>>
 
     companion object Factory {
         fun retrofitService(): MasterService = Retrofit.Builder()

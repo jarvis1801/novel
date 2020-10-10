@@ -21,6 +21,16 @@
         android:overScrollMode="never"
         />
 
+    <com.google.android.material.progressindicator.ProgressIndicator
+        style="@style/Widget.MaterialComponents.ProgressIndicator.Linear.Determinate"
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:trackColor="@android:color/transparent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:progress="0"/>
+
+
     <LinearLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"

@@ -13,8 +13,15 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.viewpager.NovelVolumeChapterViewPagerAdapter
+import com.jarvis.novel.util.GlideHelper
 import com.jarvis.novel.viewModel.VolumeChapterViewModel
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.img_thumbnail
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.tab_main
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_author
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_is_end
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_title
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.viewpager
 
 class NovelVolumeChapterFragment : BaseFragment() {
     private val model: VolumeChapterViewModel by activityViewModels()
@@ -42,7 +49,7 @@ class NovelVolumeChapterFragment : BaseFragment() {
                     childFragmentManager.popBackStackImmediate()
                     txt_is_end.textSize = 20f
                 } else {
-                    getDataBase().userDao().findById(it).observeOnce(viewLifecycleOwner, { novel ->
+                    getDataBase().novelDao().findById(it).observeOnce(viewLifecycleOwner, { novel ->
                         model.novelLiveData.postValue(novel)
                     })
                 }
@@ -63,15 +70,17 @@ class NovelVolumeChapterFragment : BaseFragment() {
     private fun updateUI(novel: Novel) {
         when (App.instance.isShowThumbnail) {
             true -> {
-                novel.thumbnailSectionBlob?.let {
-                    val bitmap = App.instance.byteArrayToCompressedBitmap(
-                        novel.thumbnailSectionBlob,
-                        App.instance.getScreenWidth()
+                novel.thumbnailSection?.let {
+                    GlideHelper().loadImage(
+                        requireContext(),
+                        "${requireContext().getString(R.string.base_url)}file/${it.content}",
+                        img_thumbnail,
+                        it.content!!
                     )
-                    bitmap?.let {
-                        img_thumbnail.setImageBitmap(bitmap)
-                    } ?: createPlaceholder()
-
+//                    Glide.with(requireContext())
+//                        .load("${requireContext().getString(R.string.base_url)}file/${it.content}")
+//                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+//                        .into(img_thumbnail)
                 } ?: run {
                     createPlaceholder()
                 }
@@ -131,5 +140,8 @@ class NovelVolumeChapterFragment : BaseFragment() {
         model.novelLiveData.postValue(null)
 
         viewpagerAdapter = null
+
+        requireActivity().bottom_navigation?.visibility = View.VISIBLE
+        requireActivity().container_show_thumbnail?.visibility = View.VISIBLE
     }
 }

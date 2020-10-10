@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#fff">
+
+    <com.jarvis.novel.ui.custom.CustomViewpager
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="100">
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="0dp"
+            android:layout_weight="25"
+            android:layout_height="match_parent"
+            />
+
+        <View
+            android:id="@+id/view2"
+            android:layout_width="0dp"
+            android:layout_weight="50"
+            android:layout_height="60dp"
+            android:layout_gravity="bottom"
+            />
+
+        <View
+            android:id="@+id/view3"
+            android:layout_width="0dp"
+            android:layout_weight="25"
+            android:layout_height="match_parent"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/overlay_top"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="#88000000"
+        android:translationY="-40dp"
+        android:gravity="center"
+        android:visibility="gone"
+        >
+
+        <TextView
+            android:id="@+id/txt_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/txt_size_large"
+            tools:text="約定的夢幻島"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="5dp"
+            android:textColor="@android:color/white"
+            android:text=" - "
+            android:textSize="@dimen/txt_size_large"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/txt_volume"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="5dp"
+            android:textSize="@dimen/txt_size_large"
+            tools:text="第01卷"
+            />
+
+        <TextView
+            android:id="@+id/txt_page"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="5dp"
+            android:textSize="@dimen/txt_size_large"
+            tools:text="[1/197]"
+            />
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/overlay_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:translationY="40dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <SeekBar
+            style="@style/Widget.MaterialComponents.ProgressIndicator.Linear.Determinate"
+            android:id="@+id/progress_bar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/img_qrcode"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:progress="0"/>
+
+        <ImageView
+            android:id="@+id/img_qrcode"
+            android:layout_width="35dp"
+            android:layout_height="match_parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="@android:color/black"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="5dp"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

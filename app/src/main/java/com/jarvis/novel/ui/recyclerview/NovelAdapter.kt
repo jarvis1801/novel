@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
+import com.jarvis.novel.util.GlideHelper
 import kotlinx.android.synthetic.main.item_novel.view.*
 
 class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapter<NovelAdapter.ViewHolder>() {
@@ -37,17 +38,18 @@ class NovelAdapter(val onItemClick: (item: Novel) -> Unit) : RecyclerView.Adapte
         fun bind(item: Novel) {
             when (App.instance.isShowThumbnail) {
                 true -> {
-                    if (item.thumbnailMainBlob?.size ?: -1 > 0) {
-                        val bitmap = App.instance.byteArrayToCompressedBitmap(
-                            item.thumbnailMainBlob!!,
-                            App.instance.getScreenWidth() / 3
+                    item.thumbnailMain?.let {
+                        GlideHelper().loadImage(
+                            mContext,
+                            "${mContext.getString(R.string.base_url)}file/${it.content}",
+                            itemView.img_thumbnail,
+                            it.content!!
                         )
-                        bitmap?.let {
-                            itemView.img_thumbnail.setImageBitmap(bitmap)
-                        } ?: createPlaceholder()
-                    } else {
-                        createPlaceholder()
-                    }
+//                        Glide.with(mContext)
+//                            .load("${mContext.getString(R.string.base_url)}file/${it.content}")
+//                            .diskCacheStrategy(DiskCacheStrategy.DATA)
+//                            .into(itemView.img_thumbnail)
+                    } ?: createPlaceholder()
                 }
                 false -> createPlaceholder()
             }

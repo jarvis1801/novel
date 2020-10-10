@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.MergeAdapter
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.jarvis.novel.R
@@ -19,6 +19,7 @@ import com.jarvis.novel.viewModel.NetworkViewModel
 import com.jarvis.novel.viewModel.NovelViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_novel.*
 
 class NovelListFragment : BaseFragment() {
@@ -43,7 +44,7 @@ class NovelListFragment : BaseFragment() {
 
     private fun init() {
         initLiveData()
-        getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
+        getDataBase().novelDao().getAll().observeOnce(viewLifecycleOwner, {
             novelListDB = it ?: arrayListOf()
             if (novelListDB.isNullOrEmpty()) {
                 model.getNovelList()
@@ -65,7 +66,7 @@ class NovelListFragment : BaseFragment() {
         if (novelIdList.size > 0) {
             model.addUpdateNovelList(novelIdList)
         } else {
-            getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
+            getDataBase().novelDao().getAll().observeOnce(viewLifecycleOwner, {
                 novelListDB = it ?: arrayListOf()
                 model.novelListLiveData.postValue(novelListDB)
             })
@@ -90,7 +91,7 @@ class NovelListFragment : BaseFragment() {
                 if (it.isNotEmpty()) {
                     insertAllReplace(it)
                 }
-                getDataBase().userDao().getAll().observeOnce(viewLifecycleOwner, {
+                getDataBase().novelDao().getAll().observeOnce(viewLifecycleOwner, {
                     novelListDB = it ?: arrayListOf()
                     model.novelListLiveData.postValue(novelListDB)
                 })
@@ -98,21 +99,25 @@ class NovelListFragment : BaseFragment() {
             hideLoadingDialog()
         })
 
-        networkViewModel.networkStatus.observe(viewLifecycleOwner, {
-            snackbar?.dismiss()
-            if (it == NetworkViewModel.ON_CONNECT) {
-                snackbar = Snackbar.make(requireView(), "已連接", Snackbar.LENGTH_LONG)
-                snackbar?.show()
-            } else if (it == NetworkViewModel.NO_NETWORK) {
-                snackbar = Snackbar.make(requireView(), "網絡中斷", Snackbar.LENGTH_LONG)
-                snackbar?.show()
-            }
+//        networkViewModel.networkStatus.observe(viewLifecycleOwner, {
+//            snackbar?.dismiss()
+//            if (it == NetworkViewModel.ON_CONNECT) {
+//                snackbar = Snackbar.make(requireView(), "已連接", Snackbar.LENGTH_LONG)
+//                snackbar?.show()
+//            } else if (it == NetworkViewModel.NO_NETWORK) {
+//                snackbar = Snackbar.make(requireView(), "網絡中斷", Snackbar.LENGTH_LONG)
+//                snackbar?.show()
+//            }
+//        })
+
+        model.isShowThumbnail.observeWithoutOnResume(viewLifecycleOwner, {
+            novelAdapter?.notifyDataSetChanged()
         })
     }
 
     private fun insertAllReplace(it: List<Novel>) {
         val observable = Observable.fromCallable {
-            getDataBase().userDao().insertAllReplace(it)
+            getDataBase().novelDao().insertAllReplace(it)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 
@@ -121,7 +126,7 @@ class NovelListFragment : BaseFragment() {
 
     private fun insertAllUserNotReplace(it: List<Novel>) {
         val observable = Observable.fromCallable {
-            getDataBase().userDao().insertAllNotReplace(it)
+            getDataBase().novelDao().insertAllNotReplace(it)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 
@@ -143,11 +148,13 @@ class NovelListFragment : BaseFragment() {
         recyclerview_novel_list?.apply {
             setHasFixedSize(true)
             layoutManager = viewManager
-            adapter = MergeAdapter(novelAdapter)
+            adapter = ConcatAdapter(novelAdapter)
         }
     }
 
     private fun createNovelVolumeChapterFragment(novel: Novel): NovelVolumeChapterFragment {
+        requireActivity().bottom_navigation?.visibility = View.GONE
+        requireActivity().container_show_thumbnail?.visibility = View.GONE
         val fragment = NovelVolumeChapterFragment()
         val bundle = Bundle()
         bundle.putString("novelId", novel._id)

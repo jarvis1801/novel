@@ -122,7 +122,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
     private fun insertAllVolumeReplace(sortedList: List<Volume>) {
         val observable = Observable.fromCallable {
-            getDataBase().volumeDao().insertAllReplace(sortedList)
+            getDataBase().novelVolumeDao().insertAllReplace(sortedList)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 
@@ -145,6 +145,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
             novelVolumeItems.addAll(list)
             novelVolumeAdapter.notifyDataSetChanged()
         }
+        model.mUpdateEndChapter.postValue(null)
     }
 
     private fun initLiveData() {
@@ -186,7 +187,7 @@ class NovelVolumeIndexFragment : BaseFragment() {
     }
 
     private fun initVolumeList() {
-        getDataBase().volumeDao().findById(model.mNovelId.value!!).observeOnce(viewLifecycleOwner, {
+        getDataBase().novelVolumeDao().findById(model.mNovelId.value!!).observeOnce(viewLifecycleOwner, {
             volumeListDB = it
             if (volumeListDB.isNullOrEmpty()) {
                 model.getVolumeList(model.mNovelId.value!!)
@@ -212,6 +213,9 @@ class NovelVolumeIndexFragment : BaseFragment() {
     }
 
     private fun initView() {
+
+//        recyclerview_preload.showShimmerAdapter()
+
         viewManager = LinearLayoutManager(requireActivity())
 
         novelVolumeAdapter.register(Volume::class.java, NovelVolumeProvider())
