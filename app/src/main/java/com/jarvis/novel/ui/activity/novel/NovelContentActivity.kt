@@ -1,16 +1,11 @@
-package com.jarvis.novel.ui.fragment
+package com.jarvis.novel.ui.activity.novel
 
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.MultiTypeAdapter
@@ -19,7 +14,7 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Chapter
 import com.jarvis.novel.data.Paragraph
 import com.jarvis.novel.data.Volume
-import com.jarvis.novel.ui.base.BaseFragment
+import com.jarvis.novel.ui.base.BaseActivity
 import com.jarvis.novel.ui.recyclerview.NovelTextContentProvider
 import com.jarvis.novel.ui.recyclerview.NovelTitleContentProvider
 import com.jarvis.novel.util.SharedPreferenceUtil
@@ -27,12 +22,12 @@ import com.jarvis.novel.viewModel.NovelContentViewModel
 import com.jarvis.novel.viewModel.NovelVolumeIndexModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_novel_content.*
+import kotlinx.android.synthetic.main.activity_novel_content.*
 import java.util.*
 
-class NovelContentFragment : BaseFragment() {
-    private lateinit var model: NovelContentViewModel
-    private val novelVolumeIndexModel: NovelVolumeIndexModel by activityViewModels()
+class NovelContentActivity : BaseActivity() {
+    private val model: NovelContentViewModel by viewModels()
+    private val novelVolumeIndexModel: NovelVolumeIndexModel by viewModels()
 
     private val novelContentAdapter = MultiTypeAdapter()
     private val novelContentItems = ArrayList<Any>()
@@ -51,12 +46,13 @@ class NovelContentFragment : BaseFragment() {
 
     private var isScrollEndOnce = false
 
-    private var measureWidth = 0
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_novel_content)
 
-        model = requireActivity().let { ViewModelProvider(this).get(NovelContentViewModel::class.java) }
+        init()
+
+        initView()
 
         createTimeTask()
     }
@@ -78,24 +74,16 @@ class NovelContentFragment : BaseFragment() {
         mTimer?.schedule(mTimerTask, 3000L)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_novel_content, container, false)
-
-        init()
-
-        return root
-    }
-
     private fun init() {
         initLiveData()
         getArgs()
     }
 
     private fun getArgs() {
-        val chapterId = requireArguments().getString("chapterId", null)
-        val volumeId = requireArguments().getString("volumeId", null)
-        if (volumeId != null && chapterId != null) {
-            getDataBase().novelVolumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, {
+        val chapterId = intent.getStringExtra("chapterId") ?: ""
+        val volumeId = intent.getStringExtra("volumeId") ?: ""
+        if (volumeId.isNotEmpty() && chapterId.isNotEmpty()) {
+            getDatabase().novelVolumeDao().findOneById(volumeId).observeOnce(this, {
                 volumeDB = it
                 if (volumeDB != null) {
                     volumeDB!!.chapterList.forEach {
@@ -110,12 +98,12 @@ class NovelContentFragment : BaseFragment() {
                 }
             })
         } else {
-            requireActivity().supportFragmentManager.popBackStack()
+            finish()
         }
     }
 
     private fun initLiveData() {
-        model.chapterLiveData.observeWithoutOnResume(viewLifecycleOwner, {
+        model.chapterLiveData.observe(this, {
             if (it != null) {
                 scrolledY = it.positionY
                 novelContentItems.clear()
@@ -146,15 +134,8 @@ class NovelContentFragment : BaseFragment() {
         }
     }
 
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        initView()
-    }
-
     private fun initView() {
-        viewManager = LinearLayoutManager(requireActivity())
+        viewManager = LinearLayoutManager(this)
 
         novelContentAdapter.register(Paragraph::class.java, NovelTextContentProvider())
         novelContentAdapter.register(String::class.java, NovelTitleContentProvider())
@@ -190,7 +171,7 @@ class NovelContentFragment : BaseFragment() {
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
                     if (!recyclerView.canScrollVertically(1) && newState == RecyclerView.SCROLL_STATE_IDLE && !isScrollEndOnce) {
-                        Toast.makeText(requireContext(), "章節已完結", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "章節已完結", Toast.LENGTH_SHORT).show()
 
                         isScrollEndOnce = true
 
@@ -240,16 +221,16 @@ class NovelContentFragment : BaseFragment() {
 
     private fun insertOneReplace(volumeDB: Volume) {
         val observable = Observable.fromCallable {
-            getDataBase().novelVolumeDao().insertOneReplace(volumeDB)
+            getDatabase().novelVolumeDao().insertOneReplace(volumeDB)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 
         compositeDisposable.add(observable)
     }
 
-    override fun onDestroyView() {
+    override fun onDestroy() {
         mTimer!!.cancel()
         mTimer!!.purge()
-        super.onDestroyView()
+        super.onDestroy()
     }
 }

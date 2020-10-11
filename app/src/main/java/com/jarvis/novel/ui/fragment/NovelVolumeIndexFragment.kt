@@ -15,6 +15,7 @@ import com.drakeet.multitype.MultiTypeAdapter
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Volume
+import com.jarvis.novel.ui.activity.novel.NovelContentActivity
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.HeaderItemDecoration
 import com.jarvis.novel.ui.recyclerview.NovelVolumeProvider
@@ -34,6 +35,11 @@ class NovelVolumeIndexFragment : BaseFragment() {
     private val novelVolumeAdapter = MultiTypeAdapter()
     private val novelVolumeItems = ArrayList<Any>()
     private var viewManager: LinearLayoutManager? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_index, container, false)
@@ -218,7 +224,12 @@ class NovelVolumeIndexFragment : BaseFragment() {
 
         viewManager = LinearLayoutManager(requireActivity())
 
-        novelVolumeAdapter.register(Volume::class.java, NovelVolumeProvider())
+        novelVolumeAdapter.register(Volume::class.java, NovelVolumeProvider { volumeId, chapterId ->
+            requireActivity().launchActivity<NovelContentActivity> {
+                putExtra("volumeId", volumeId)
+                putExtra("chapterId", chapterId)
+            }
+        })
         novelVolumeAdapter.items = novelVolumeItems
 
         recyclerview_novel_volume.apply {

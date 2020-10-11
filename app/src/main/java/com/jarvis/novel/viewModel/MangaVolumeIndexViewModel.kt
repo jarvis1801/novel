@@ -32,7 +32,7 @@ class MangaVolumeIndexViewModel : ViewModel() {
 
             },
             next = {
-                if (it.code().toString().startsWith("2") || it.code().toString().startsWith("3") || !it.body().isNullOrEmpty()) {
+                if ((it.code().toString().startsWith("2") || it.code().toString().startsWith("3")) && !it.body().isNullOrEmpty()) {
                     mangaChapterListLiveData.postValue(it.body())
                     prefetchImage(context, it.body())
                     updateVolumeCallback()
@@ -68,9 +68,12 @@ class MangaVolumeIndexViewModel : ViewModel() {
                 mangaChapter.content.forEach {
                     var isLast = false
 
-                    if (mangaVolume.chapterList[mangaVolume.chapterList.size - 1]._id == mangaChapter._id &&
-                        mangaChapter.content[mangaChapter.content.size - 1]._id == it._id) {
-                        isLast = true
+                    if (list[list.size - 1]._id == mangaVolume._id) {
+                        if (mangaVolume.chapterList[mangaVolume.chapterList.size - 1]._id == mangaChapter._id &&
+                            mangaChapter.content[mangaChapter.content.size - 1]._id == it._id
+                        ) {
+                            isLast = true
+                        }
                     }
 
                     if (SharedPreferenceUtil.getIsGetFromAPI()) {

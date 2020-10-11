@@ -5,13 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.jarvis.novel.R
-import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
+import com.jarvis.novel.ui.activity.novel.NovelVolumeChapterActivity
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.NovelAdapter
 import com.jarvis.novel.util.SharedPreferenceUtil
@@ -19,7 +19,6 @@ import com.jarvis.novel.viewModel.NetworkViewModel
 import com.jarvis.novel.viewModel.NovelViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_novel.*
 
 class NovelListFragment : BaseFragment() {
@@ -142,8 +141,9 @@ class NovelListFragment : BaseFragment() {
     private fun initView() {
         viewManager = GridLayoutManager(requireActivity(), 3)
         novelAdapter = NovelAdapter {
-            showLoadingDialog()
-            App.instance.addFragment(createNovelVolumeChapterFragment(it), R.id.fragment_container, type = "add", addToBackStack = true, fm = requireActivity().supportFragmentManager, tag = "novel_list_page")
+            requireActivity().launchActivity<NovelVolumeChapterActivity> {
+                putExtra("novelId", it._id)
+            }
         }
         recyclerview_novel_list?.apply {
             setHasFixedSize(true)
@@ -152,15 +152,4 @@ class NovelListFragment : BaseFragment() {
         }
     }
 
-    private fun createNovelVolumeChapterFragment(novel: Novel): NovelVolumeChapterFragment {
-        requireActivity().bottom_navigation?.visibility = View.GONE
-        requireActivity().container_show_thumbnail?.visibility = View.GONE
-        val fragment = NovelVolumeChapterFragment()
-        val bundle = Bundle()
-        bundle.putString("novelId", novel._id)
-
-        fragment.arguments = bundle
-
-        return fragment
-    }
 }

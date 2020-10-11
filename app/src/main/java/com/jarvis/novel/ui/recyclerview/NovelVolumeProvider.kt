@@ -2,7 +2,6 @@ package com.jarvis.novel.ui.recyclerview
 
 import android.content.Context
 import android.graphics.Color
-import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewDelegate
 import com.google.android.flexbox.FlexWrap
@@ -19,11 +17,9 @@ import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Chapter
 import com.jarvis.novel.data.Volume
-import com.jarvis.novel.ui.activity.MainActivity
-import com.jarvis.novel.ui.fragment.NovelContentFragment
 import kotlinx.android.synthetic.main.item_novel_volume.view.*
 
-class NovelVolumeProvider : ItemViewDelegate<Volume, NovelVolumeProvider.ViewHolder>() {
+class NovelVolumeProvider(val onClick: (volumeId: String, chapterId: String) -> Unit) : ItemViewDelegate<Volume, NovelVolumeProvider.ViewHolder>() {
 
     private lateinit var mContext: Context
 
@@ -96,24 +92,12 @@ class NovelVolumeProvider : ItemViewDelegate<Volume, NovelVolumeProvider.ViewHol
             textView.setPadding(App.instance.dpToPixel(10f), App.instance.dpToPixel(2f), App.instance.dpToPixel(10f), App.instance.dpToPixel(2f))
             textView.gravity = Gravity.CENTER
 
-            val activity = mContext as MainActivity
-
             textView.setOnClickListener {
-                App.instance.addFragment(createNovelContentFragment(chapter, volumeId), R.id.fragment_container, type = "add", addToBackStack = true, fm = activity.supportFragmentManager, tag = "novel_content_page")
+                onClick(volumeId, chapter._id)
             }
 
             return textView
         }
 
-        private fun createNovelContentFragment(chapter: Chapter, volumeId: String): Fragment {
-            val fragment = NovelContentFragment()
-            val bundle = Bundle()
-            bundle.putString("volumeId", volumeId)
-            bundle.putString("chapterId", chapter._id)
-
-            fragment.arguments = bundle
-
-            return fragment
-        }
     }
 }

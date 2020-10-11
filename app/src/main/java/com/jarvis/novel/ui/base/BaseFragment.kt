@@ -10,7 +10,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import com.jarvis.novel.R
 import com.jarvis.novel.database.AppDatabase
-import com.jarvis.novel.ui.activity.MainActivity
 import io.reactivex.disposables.CompositeDisposable
 
 
@@ -37,7 +36,7 @@ abstract class BaseFragment : Fragment(), LifecycleObserver {
     }
 
     fun getDataBase(): AppDatabase {
-        return (requireActivity() as MainActivity).getDatabase()
+        return (requireActivity() as BaseActivity).getDatabase()
     }
 
     private fun isBlockObserve(): Boolean {
@@ -68,22 +67,22 @@ abstract class BaseFragment : Fragment(), LifecycleObserver {
     }
 
     fun showLoadingDialog() {
-        val mainActivity = requireActivity() as MainActivity
+        val mainActivity = requireActivity() as BaseActivity
         mainActivity.showLoadingDialog()
     }
 
     fun hideLoadingDialog() {
-        val mainActivity = requireActivity() as MainActivity
+        val mainActivity = requireActivity() as BaseActivity
         mainActivity.hideLoadingDialog()
     }
 
     fun showLoadingPercent() {
-        val mainActivity = requireActivity() as MainActivity
+        val mainActivity = requireActivity() as BaseActivity
         mainActivity.showLoadingPercent()
     }
 
     fun updateLoadingPercent(string: String?) {
-        val mainActivity = requireActivity() as MainActivity
+        val mainActivity = requireActivity() as BaseActivity
         mainActivity.updateLoadingPercent(string)
     }
 

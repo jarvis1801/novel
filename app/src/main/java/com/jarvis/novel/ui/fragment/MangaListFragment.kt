@@ -1,7 +1,6 @@
 package com.jarvis.novel.ui.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,11 +8,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.drakeet.multitype.MultiTypeAdapter
 import com.jarvis.novel.R
-import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Manga
-import com.jarvis.novel.data.MangaVolume
+import com.jarvis.novel.ui.activity.manga.MangaVolumeChapterActivity
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.CustomMultiTypeAdapter
 import com.jarvis.novel.ui.recyclerview.MangaProvider
@@ -22,7 +19,6 @@ import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.MangaViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_manga.*
 
 class MangaListFragment : BaseFragment() {
@@ -160,8 +156,7 @@ class MangaListFragment : BaseFragment() {
     private fun initView() {
         viewManager = GridLayoutManager(requireActivity(), 3)
         mangaAdapter.register(Manga::class.java, MangaProvider {
-            showLoadingDialog()
-            App.instance.addFragment(createMangaChapterIndexFragment(it), R.id.fragment_container, type = "add", addToBackStack = true, fm = requireActivity().supportFragmentManager, tag = "manga_list_page")
+            startMangaChapterActivity(it)
         })
         mangaAdapter.items = mangaItems
         val itemTouchHelperCallback = ItemTouchHelperCallback(mangaAdapter)
@@ -177,16 +172,10 @@ class MangaListFragment : BaseFragment() {
         helper.attachToRecyclerView(recyclerview_manga_list)
     }
 
-    private fun createMangaChapterIndexFragment(manga: Manga): MangaVolumeChapterMainFragment {
-        requireActivity().bottom_navigation?.visibility = View.GONE
-        requireActivity().container_show_thumbnail?.visibility = View.GONE
-        val fragment = MangaVolumeChapterMainFragment()
-        val bundle = Bundle()
-        bundle.putString("mangaId", manga._id)
-
-        fragment.arguments = bundle
-
-        return fragment
+    private fun startMangaChapterActivity(manga: Manga) {
+        requireActivity().launchActivity<MangaVolumeChapterActivity> {
+            putExtra("mangaId", manga._id)
+        }
     }
 
     override fun onDestroyView() {

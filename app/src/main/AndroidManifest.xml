@@ -22,8 +22,15 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.activity.QRCodeActivity"
-            />
+        <activity android:name=".ui.activity.QRCodeActivity" />
+
+        <activity android:name=".ui.activity.manga.MangaVolumeChapterActivity" />
+
+        <activity android:name=".ui.activity.manga.MangaContentActivity" />
+
+        <activity android:name=".ui.activity.novel.NovelVolumeChapterActivity" />
+
+        <activity android:name=".ui.activity.novel.NovelContentActivity" />
     </application>
 
 </manifest>

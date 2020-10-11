@@ -2,7 +2,6 @@ package com.jarvis.novel.ui.recyclerview
 
 import android.content.Context
 import android.graphics.Color
-import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -10,19 +9,17 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.drakeet.multitype.ItemViewDelegate
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
-import com.jarvis.novel.data.*
-import com.jarvis.novel.ui.activity.MainActivity
-import com.jarvis.novel.ui.fragment.MangaContentFragment
+import com.jarvis.novel.data.MangaChapter
+import com.jarvis.novel.data.MangaVolume
 import kotlinx.android.synthetic.main.item_novel_volume.view.*
 
-class MangaVolumeProvider : ItemViewDelegate<MangaVolume, MangaVolumeProvider.ViewHolder>() {
+class MangaVolumeProvider(val onClick: (chapter: String, volumeId: String) -> Unit, val onLongPress: (chapter: String, volumeId: String) -> Unit) : ItemViewDelegate<MangaVolume, MangaVolumeProvider.ViewHolder>() {
     private lateinit var mContext: Context
 
     override fun onCreateViewHolder(context: Context, parent: ViewGroup): MangaVolumeProvider.ViewHolder {
@@ -94,31 +91,16 @@ class MangaVolumeProvider : ItemViewDelegate<MangaVolume, MangaVolumeProvider.Vi
             textView.setPadding(App.instance.dpToPixel(10f), App.instance.dpToPixel(2f), App.instance.dpToPixel(10f), App.instance.dpToPixel(2f))
             textView.gravity = Gravity.CENTER
 
-            val activity = mContext as MainActivity
-
             textView.setOnClickListener {
-                App.instance.addFragment(createMangaContentFragment(chapter, volumeId), R.id.fragment_container, type = "add", addToBackStack = true, fm = activity.supportFragmentManager, tag = "novel_content_page")
+                onClick(chapter._id, volumeId)
             }
             textView.setOnLongClickListener {
-                App.instance.addFragment(createMangaContentFragment(chapter, volumeId, true), R.id.fragment_container, type = "add", addToBackStack = true, fm = activity.supportFragmentManager, tag = "novel_content_page")
+                onLongPress(chapter._id, volumeId)
                 true
             }
 
             return textView
         }
 
-        private fun createMangaContentFragment(chapter: MangaChapter, volumeId: String, isResetPage: Boolean = false): Fragment {
-            val fragment = MangaContentFragment()
-            val bundle = Bundle()
-            bundle.putString("chapterId", chapter._id)
-            bundle.putString("volumeId", volumeId)
-            if (isResetPage) {
-                bundle.putBoolean("resetPage", true)
-            }
-
-            fragment.arguments = bundle
-
-            return fragment
-        }
     }
 }

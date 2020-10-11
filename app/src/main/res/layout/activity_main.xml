@@ -72,34 +72,4 @@
         app:itemIconTint="@android:color/white"
         app:itemTextColor="@android:color/white" />
 
-    <FrameLayout
-        android:id="@+id/loading_dialog"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#B0000000"
-        android:clickable="false"
-        android:focusable="true"
-        >
-
-        <ProgressBar
-            android:id="@+id/progress_circular"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_gravity="center"
-            />
-
-        <TextView
-            android:id="@+id/txt_percent"
-            android:layout_width="48dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textAlignment="center"
-            android:textSize="@dimen/txt_size_normal"
-            android:textColor="@android:color/white"
-            tools:text="12%"
-            android:visibility="gone"
-            />
-
-    </FrameLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

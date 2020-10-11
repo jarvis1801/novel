@@ -17,6 +17,7 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.MangaChapter
 import com.jarvis.novel.data.MangaVolume
 import com.jarvis.novel.data.Volume
+import com.jarvis.novel.ui.activity.manga.MangaContentActivity
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.recyclerview.HeaderItemDecoration
 import com.jarvis.novel.ui.recyclerview.MangaVolumeProvider
@@ -114,7 +115,6 @@ class MangaVolumeIndexFragment() : BaseFragment() {
 
                 insertAllVolumeReplace(sortedList)
                 mangaChapterItems.addAll(sortedList)
-//                hideLoadingDialog()
             }
             mangaChapterAdapter.notifyDataSetChanged()
 
@@ -219,12 +219,16 @@ class MangaVolumeIndexFragment() : BaseFragment() {
     }
 
     private fun initView() {
-
-//        recyclerview_preload.showShimmerAdapter()
-
         viewManager = LinearLayoutManager(requireActivity())
 
-        mangaChapterAdapter.register(MangaVolume::class.java, MangaVolumeProvider())
+        mangaChapterAdapter.register(MangaVolume::class.java, MangaVolumeProvider(
+            onClick = { chapterId, volumeId ->
+                startMangaContentActivity(chapterId, volumeId)
+            },
+            onLongPress = { chapterId, volumeId ->
+                startMangaContentActivity(chapterId, volumeId, true)
+            }
+        ))
         mangaChapterAdapter.items = mangaChapterItems
 
         recyclerview_manga_volume.apply {
@@ -241,6 +245,16 @@ class MangaVolumeIndexFragment() : BaseFragment() {
                 }
                 false
             })
+        }
+    }
+
+    private fun startMangaContentActivity(chapterId: String, volumeId: String, isResetPage: Boolean = false) {
+        requireActivity().launchActivity<MangaContentActivity> {
+            putExtra("chapterId", chapterId)
+            putExtra("volumeId", volumeId)
+            if (isResetPage) {
+                putExtra("resetPage", true)
+            }
         }
     }
 

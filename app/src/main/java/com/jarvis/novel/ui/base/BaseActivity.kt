@@ -1,10 +1,14 @@
 package com.jarvis.novel.ui.base
 
-import android.content.ClipData.newIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -22,6 +26,21 @@ abstract class BaseActivity: FragmentActivity() {
     private var mAppDatabase: AppDatabase ?= null
 
     protected val compositeDisposable = CompositeDisposable()
+
+    private lateinit var loadingView: ViewGroup
+    protected var fullLayout: FrameLayout? = null
+    protected var subActivityContent: FrameLayout? = null
+
+    override fun setContentView(layoutResID: Int) {
+        val inflater = this.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        fullLayout = inflater.inflate(R.layout.activity_base, null) as FrameLayout
+        loadingView = fullLayout!!.findViewById(R.id.loading_dialog) as FrameLayout
+        subActivityContent = fullLayout!!.findViewById(R.id.content_frame) as FrameLayout
+
+        inflater.inflate(layoutResID, subActivityContent, true)
+
+        super.setContentView(fullLayout)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,11 +65,13 @@ abstract class BaseActivity: FragmentActivity() {
 
     inline fun <reified T : Any> Context.launchActivity(
         options: Bundle? = null,
-        noinline init: Intent.() -> Unit = {}) {
+        noinline init: Intent.() -> Unit = {}
+    ) {
 
         val intent = newIntent<T>(this)
         intent.init()
         startActivity(intent, options)
+        overridePendingTransition(R.anim.enter, R.anim.exit)
     }
 
     inline fun <reified T : Any> newIntent(context: Context): Intent =
@@ -66,7 +87,32 @@ abstract class BaseActivity: FragmentActivity() {
     }
 
     override fun onBackPressed() {
+        if (loadingView.isVisible) {
+            return
+        }
+
         super.onBackPressed()
         overridePendingTransition(R.anim.pop_enter, R.anim.pop_exit)
+    }
+
+    fun showLoadingDialog() {
+        loadingView.visibility = View.VISIBLE
+    }
+
+    fun hideLoadingDialog() {
+        val txtPercent = loadingView.findViewById<TextView>(R.id.txt_percent)
+        loadingView.visibility = View.GONE
+        txtPercent?.visibility = View.GONE
+        txtPercent?.text = ""
+    }
+
+    fun showLoadingPercent() {
+        val txtPercent = loadingView.findViewById<TextView>(R.id.txt_percent)
+        txtPercent?.visibility = View.VISIBLE
+    }
+
+    fun updateLoadingPercent(string: String?) {
+        val txtPercent = loadingView.findViewById<TextView>(R.id.txt_percent)
+        txtPercent?.text = string ?: ""
     }
 }

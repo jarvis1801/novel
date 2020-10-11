@@ -1,54 +1,39 @@
-package com.jarvis.novel.ui.fragment
+package com.jarvis.novel.ui.activity.manga
 
 import android.animation.ObjectAnimator
-import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.SeekBar
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.RecyclerView
+import androidx.activity.viewModels
 import androidx.viewpager.widget.ViewPager
-import androidx.viewpager2.widget.ViewPager2
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.MangaChapter
 import com.jarvis.novel.data.MangaVolume
 import com.jarvis.novel.ui.activity.QRCodeActivity
 import com.jarvis.novel.ui.base.BaseActivity
-import com.jarvis.novel.ui.base.BaseFragment
-import com.jarvis.novel.ui.viewpager.MangaContentAdapter
 import com.jarvis.novel.ui.viewpager.MangaContentPageAdapter
 import com.jarvis.novel.viewModel.MangaContentViewModel
 import com.jarvis.novel.viewModel.MangaVolumeIndexViewModel
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_manga_content.*
+import kotlinx.android.synthetic.main.activity_manga_content.*
 
+class MangaContentActivity : BaseActivity() {
+    private val model: MangaContentViewModel by viewModels()
+    private val volumeModel: MangaVolumeIndexViewModel by viewModels()
 
-class MangaContentFragment : BaseFragment() {
-    private lateinit var model: MangaContentViewModel
-    private val volumeModel: MangaVolumeIndexViewModel by activityViewModels()
-
-//    private lateinit var mangaContentAdapter: MangaContentAdapter
+    //    private lateinit var mangaContentAdapter: MangaContentAdapter
     private lateinit var mangaContentAdapter: MangaContentPageAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        model = requireActivity().let { ViewModelProvider(this).get(MangaContentViewModel::class.java) }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_manga_content, container, false)
+        setContentView(R.layout.activity_manga_content)
 
         getArgs()
         init()
 
-        return root
+        initView()
     }
 
     private fun init() {
@@ -57,12 +42,6 @@ class MangaContentFragment : BaseFragment() {
 
     private fun initLiveData() {
 
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        initView()
     }
 
     private fun initView() {
@@ -93,7 +72,7 @@ class MangaContentFragment : BaseFragment() {
         }
 
         img_qrcode.setOnClickListener {
-            requireContext().launchActivity<QRCodeActivity> {
+            launchActivity<QRCodeActivity> {
                 val chapter = model.chapter.value
                 val volume = model.volume.value
                 volume?.let {
@@ -108,12 +87,12 @@ class MangaContentFragment : BaseFragment() {
     }
 
     private fun getArgs() {
-        val chapterId = requireArguments().getString("chapterId")
-        val volumeId = requireArguments().getString("volumeId")
-        val resetPage = requireArguments().getBoolean("resetPage", false)
+        val chapterId = intent.getStringExtra("chapterId") ?: ""
+        val volumeId = intent.getStringExtra("volumeId") ?: ""
+        val resetPage = intent.getBooleanExtra("resetPage", false)
 
         mangaContentAdapter = MangaContentPageAdapter(
-            context = requireContext(),
+            context = this,
             onClick1 = {
                 val changePosition = viewpager.currentItem - 1
                 if (changePosition >= 0) {
@@ -161,7 +140,7 @@ class MangaContentFragment : BaseFragment() {
         )
 
         volumeId?.let {
-            getDataBase().mangaVolumeDao().findOneById(volumeId).observeOnce(viewLifecycleOwner, {
+            getDatabase().mangaVolumeDao().findOneById(volumeId).observeOnce(this, {
                 it?.let {
                     val chapter = it.chapterList.first {
                         it._id == chapterId
@@ -222,15 +201,15 @@ class MangaContentFragment : BaseFragment() {
 
     private fun insertOneReplace(mangaVolumeDB: MangaVolume) {
         val observable = Observable.fromCallable {
-            getDataBase().mangaVolumeDao().insertOneReplace(mangaVolumeDB)
+            getDatabase().mangaVolumeDao().insertOneReplace(mangaVolumeDB)
         }.subscribeOn(Schedulers.io())
             .subscribe({}, {})
 
         compositeDisposable.add(observable)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
+        super.onDestroy()
 
         model.reset()
     }

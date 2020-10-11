@@ -146,31 +146,6 @@ class MainActivity : BaseActivity() {
         App.instance.addFragment(fragment = MangaListFragment(), containerLayoutId = R.id.fragment_container, fm = supportFragmentManager, type = "replace", isShowAnimation = false, addToBackStack = false, tag = "main_page")
     }
 
-    fun showLoadingDialog() {
-        loading_dialog.visibility = View.VISIBLE
-    }
-
-    fun hideLoadingDialog() {
-        loading_dialog.visibility = View.GONE
-        txt_percent.visibility = View.GONE
-        txt_percent.text = ""
-    }
-
-    fun showLoadingPercent() {
-        txt_percent.visibility = View.VISIBLE
-    }
-
-    fun updateLoadingPercent(string: String?) {
-        txt_percent.text = string ?: ""
-    }
-
-    override fun onBackPressed() {
-        if (loading_dialog.isVisible) {
-            return
-        }
-        super.onBackPressed()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null) {

@@ -1,55 +1,48 @@
-package com.jarvis.novel.ui.fragment
+package com.jarvis.novel.ui.activity.novel
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
+import androidx.activity.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
-import com.jarvis.novel.ui.base.BaseFragment
+import com.jarvis.novel.ui.base.BaseActivity
 import com.jarvis.novel.ui.viewpager.NovelVolumeChapterViewPagerAdapter
 import com.jarvis.novel.util.GlideHelper
 import com.jarvis.novel.viewModel.VolumeChapterViewModel
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.img_thumbnail
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.tab_main
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_author
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_is_end
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_title
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.viewpager
+import kotlinx.android.synthetic.main.activity_novel_volume_chapter_page.*
 
-class NovelVolumeChapterFragment : BaseFragment() {
-    private val model: VolumeChapterViewModel by activityViewModels()
+class NovelVolumeChapterActivity : BaseActivity() {
+    private val model: VolumeChapterViewModel by viewModels()
     private lateinit var novelId: String
 
     private var viewpagerAdapter: NovelVolumeChapterViewPagerAdapter? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_novel_volume_chapter_page, container, false)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_novel_volume_chapter_page)
 
         init()
 
-        return root
+        initView()
     }
 
     private fun init() {
+        showLoadingDialog()
         initLiveData()
         getArgs()
     }
 
     private fun initLiveData() {
         if (!model.mNovelId.hasObservers()) {
-            model.mNovelId.observe(viewLifecycleOwner, {
+            model.mNovelId.observe(this, {
                 if (it.isNullOrEmpty()) {
-                    childFragmentManager.popBackStackImmediate()
+                    finish()
                     txt_is_end.textSize = 20f
                 } else {
-                    getDataBase().novelDao().findById(it).observeOnce(viewLifecycleOwner, { novel ->
+                    getDatabase().novelDao().findById(it).observeOnce(this, { novel ->
                         model.novelLiveData.postValue(novel)
                     })
                 }
@@ -57,9 +50,9 @@ class NovelVolumeChapterFragment : BaseFragment() {
         }
 
         if (!model.novelLiveData.hasObservers()) {
-            model.novelLiveData.observe(viewLifecycleOwner, {
+            model.novelLiveData.observe(this, {
                 if (it == null) {
-                    childFragmentManager.popBackStackImmediate()
+                    finish()
                 } else {
                     updateUI(it)
                 }
@@ -72,8 +65,8 @@ class NovelVolumeChapterFragment : BaseFragment() {
             true -> {
                 novel.thumbnailSection?.let {
                     GlideHelper().loadImage(
-                        requireContext(),
-                        "${requireContext().getString(R.string.base_url)}file/${it.content}",
+                        this,
+                        "${getString(R.string.base_url)}file/${it.content}",
                         img_thumbnail,
                         it.content!!
                     )
@@ -98,7 +91,8 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun createPlaceholder() {
-        img_thumbnail.setImageBitmap(App.instance.compressedBitmap(
+        img_thumbnail.setImageBitmap(
+            App.instance.compressedBitmap(
             BitmapFactory.decodeResource(
                 resources,
                 R.drawable.placeholder
@@ -108,18 +102,12 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun getArgs() {
-        novelId = requireArguments().getString("novelId", "")
+        novelId = intent.getStringExtra("novelId") ?: ""
         model.mNovelId.postValue(novelId)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        initView()
-    }
-
     private fun initView() {
-        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireActivity().applicationContext, childFragmentManager, viewLifecycleOwner.lifecycle)
+        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, applicationContext, supportFragmentManager, lifecycle)
         viewpager.apply {
             adapter = viewpagerAdapter
             (getChildAt(0) as RecyclerView).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
@@ -133,15 +121,12 @@ class NovelVolumeChapterFragment : BaseFragment() {
 
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
+        super.onDestroy()
 
         model.mNovelId.postValue(null)
         model.novelLiveData.postValue(null)
 
         viewpagerAdapter = null
-
-        requireActivity().bottom_navigation?.visibility = View.VISIBLE
-        requireActivity().container_show_thumbnail?.visibility = View.VISIBLE
     }
 }
