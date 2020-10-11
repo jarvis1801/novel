@@ -1,6 +1,16 @@
 <resources>
     <string name="app_name">Novel</string>
 
+    <string name="tab_novel">小說</string>
+    <string name="tab_manga">漫畫</string>
+    <string name="tab_qrcode">QRCode</string>
+
     <string name="novel_volume_tab_index">目錄</string>
     <string name="novel_volume_tab_info">詳情</string>
+
+    <string name="manga_chapter_tab_index">目錄</string>
+    <string name="manga_chapter_tab_info">詳情</string>
+
+    <string name="toggle_show_thumbnail">縮圖</string>
+    <string name="toggle_is_get_api">API</string>
 </resources>

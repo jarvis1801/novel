@@ -1,10 +1,9 @@
 package com.jarvis.novel.api
 
 import android.util.Log
+import com.jarvis.novel.R
 import com.jarvis.novel.core.App
-import com.jarvis.novel.data.Novel
-import com.jarvis.novel.data.NovelVersion
-import com.jarvis.novel.data.Volume
+import com.jarvis.novel.data.*
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,7 +14,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 interface MasterService {
@@ -31,9 +29,18 @@ interface MasterService {
     @GET("api/novelVersionList")
     fun getNovelVersionList(): Observable<Response<List<NovelVersion>?>>
 
+    @GET("api/mangaList")
+    fun getMangaList(): Observable<Response<List<Manga>>>
+
+    @GET("api/manga/{mangaId}")
+    fun getMangaById(@Path("mangaId") mangaId: String): Observable<Response<Manga>>
+
+    @GET("api/mangaVolumeList/{mangaId}")
+    fun getMangaVolumeList(@Path("mangaId") mangaId: String): Observable<Response<List<MangaVolume>>>
+
     companion object Factory {
         fun retrofitService(): MasterService = Retrofit.Builder()
-            .baseUrl("http://119.236.132.61:3306/")
+            .baseUrl(App.context.getString(R.string.base_url))
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -46,9 +53,9 @@ interface MasterService {
 
             return OkHttpClient.Builder()
                 .addInterceptor(
-                    HttpLoggingInterceptor(HttpLoggingInterceptor.Logger { message ->
+                    HttpLoggingInterceptor { message ->
                         Log.d("OkHttp", "log: $message")
-                    }).setLevel(
+                    }.setLevel(
                         HttpLoggingInterceptor.Level.BODY
                     )
                 )

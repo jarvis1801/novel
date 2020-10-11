@@ -1,9 +1,8 @@
 package com.jarvis.novel.api
 
 
-import com.jarvis.novel.data.Novel
-import com.jarvis.novel.data.NovelVersion
-import com.jarvis.novel.data.Volume
+import com.jarvis.novel.data.*
+import com.jarvis.novel.util.SharedPreferenceUtil
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -68,6 +67,10 @@ class ApiRepository {
     }
 
     fun getNovelVersionList(complete: () -> Unit, next: (t: Response<List<NovelVersion>?>) -> Unit, err: (e: Throwable) -> Unit) {
+        if (!SharedPreferenceUtil.getIsGetFromAPI()) {
+            err(Exception("Disable get api"))
+            return
+        }
         apiService.getNovelVersionList()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -95,4 +98,57 @@ class ApiRepository {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
     }
+
+    fun getMangaList(complete: () -> Unit, next: (t: Response<List<Manga>>) -> Unit, err: (e: Throwable) -> Unit) {
+        apiService.getMangaList()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<Response<List<Manga>>> {
+                override fun onComplete() {
+                    complete()
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    mCompositeDisposable.add(d)
+                }
+
+                override fun onNext(t: Response<List<Manga>>) {
+                    next(t)
+                }
+
+                override fun onError(e: Throwable) {
+                    err(e)
+                }
+            })
+    }
+
+    fun getMangaVolumeList(mangaId: String, complete: () -> Unit, next: (t: Response<List<MangaVolume>>) -> Unit, err: (e: Throwable) -> Unit) {
+        apiService.getMangaVolumeList(mangaId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<Response<List<MangaVolume>>> {
+                override fun onComplete() {
+                    complete()
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    mCompositeDisposable.add(d)
+                }
+
+                override fun onNext(t: Response<List<MangaVolume>>) {
+                    next(t)
+                }
+
+                override fun onError(e: Throwable) {
+                    err(e)
+                }
+            })
+    }
+
+    fun getMangaByIdObservable(mangaId: String): Observable<Response<Manga>> {
+        return apiService.getMangaById(mangaId)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+    }
+
 }

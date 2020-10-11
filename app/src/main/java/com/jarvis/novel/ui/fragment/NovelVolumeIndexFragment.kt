@@ -1,26 +1,27 @@
 package com.jarvis.novel.ui.fragment
 
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.FlexboxLayout
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.drakeet.multitype.MultiTypeAdapter
 import com.jarvis.novel.R
 import com.jarvis.novel.core.App
-import com.jarvis.novel.data.Chapter
 import com.jarvis.novel.data.Volume
 import com.jarvis.novel.ui.base.BaseFragment
+import com.jarvis.novel.ui.recyclerview.HeaderItemDecoration
+import com.jarvis.novel.ui.recyclerview.NovelVolumeProvider
 import com.jarvis.novel.util.SharedPreferenceUtil
 import com.jarvis.novel.viewModel.NovelVolumeIndexModel
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_novel_volume_index.*
 
 class NovelVolumeIndexFragment : BaseFragment() {
@@ -29,6 +30,10 @@ class NovelVolumeIndexFragment : BaseFragment() {
     private var volumeListDB: List<Volume>? = listOf()
 
     private lateinit var novelId: String
+
+    private val novelVolumeAdapter = MultiTypeAdapter()
+    private val novelVolumeItems = ArrayList<Any>()
+    private var viewManager: LinearLayoutManager? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_index, container, false)
@@ -52,140 +57,189 @@ class NovelVolumeIndexFragment : BaseFragment() {
         }
     }
 
-    private fun initLiveData() {
-        if (!model.mNovelId.hasObservers()) {
-            model.mNovelId.observe(viewLifecycleOwner, Observer {
-                if (!model.mNovelId.value.isNullOrEmpty()) {
-                    val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
+    private val mNovelIdObserver = Observer<String?> {
+        if (!it.isNullOrEmpty()) {
+            val updateNovelList = SharedPreferenceUtil.getUpdateNovelList()
 
-                    if (updateNovelList.isNullOrEmpty()) {
-                        initVolumeList()
-                    } else {
-                        val isCurrentNovelIdInList = updateNovelList.contains(novelId)
-                        if (isCurrentNovelIdInList) {
-                            model.getVolumeList(it!!) {
-                                val filterList = updateNovelList.filterNot {
-                                    it == novelId
-                                }
+            if (updateNovelList.isNullOrEmpty()) {
+                initVolumeList()
+            } else {
+                val isCurrentNovelIdInList = updateNovelList.contains(novelId)
+                if (isCurrentNovelIdInList) {
+                    model.getVolumeList(it) {
+                        val filterList = updateNovelList.filterNot {
+                            it == novelId
+                        }
 
-                                SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
-                            }
-                        } else {
-                            initVolumeList()
+                        SharedPreferenceUtil.setUpdateNovelListByStringArray(filterList)
+                    }
+                } else {
+                    initVolumeList()
+                }
+            }
+        }
+    }
+
+    private val volumeListObserver = Observer<List<Volume>?> {
+        novelVolumeItems.clear()
+        var tempReadVolumeIndex = 0
+        var readVolumeIndex = 0
+
+        if (it != null) {
+            val sortedList = it.sortedWith(compareBy<Volume>{ data -> data.index }.thenByDescending { data -> data.isStickyHeader }).also { list ->
+                list.forEach { volume ->
+                    volume.chapterList = volume.chapterList.sortedBy { chapter ->
+                        chapter.index
+                    }
+                }
+            }
+
+            var readVolumeId: String? = null
+
+            sortedList.forEach { volume ->
+                volume.chapterList.forEach { chapter ->
+                    if (chapter.isRead && volume.index > tempReadVolumeIndex) {
+                        tempReadVolumeIndex = volume.index
+                        readVolumeId = volume._id
+                    }
+                }
+            }
+
+            readVolumeIndex = sortedList.indexOfFirst {
+                it._id == readVolumeId
+            }
+
+            insertAllVolumeReplace(sortedList)
+            novelVolumeItems.addAll(sortedList)
+            hideLoadingDialog()
+        }
+        novelVolumeAdapter.notifyDataSetChanged()
+
+        if (tempReadVolumeIndex != 0) {
+            viewManager?.scrollToPositionWithOffset(readVolumeIndex, getChapterTagHeight())
+        }
+    }
+
+    private fun insertAllVolumeReplace(sortedList: List<Volume>) {
+        val observable = Observable.fromCallable {
+            getDataBase().novelVolumeDao().insertAllReplace(sortedList)
+        }.subscribeOn(Schedulers.io())
+            .subscribe({}, {})
+
+        compositeDisposable.add(observable)
+    }
+
+    private val mUpdateEndChapterObserver = Observer<String?> {
+        it?.let { id ->
+            val list = novelVolumeItems.toList()
+            list.forEach { listItem ->
+                if (listItem is Volume) {
+                    listItem.chapterList.forEach { chapter ->
+                        if (id == chapter._id) {
+                            chapter.isRead = true
                         }
                     }
                 }
-            })
+            }
+            novelVolumeItems.clear()
+            novelVolumeItems.addAll(list)
+            novelVolumeAdapter.notifyDataSetChanged()
+        }
+        model.mUpdateEndChapter.postValue(null)
+    }
+
+    private fun initLiveData() {
+//        if (!model.mNovelId.hasObservers()) {
+            model.mNovelId.observe(viewLifecycleOwner, mNovelIdObserver)
+//        }
+
+//        if (!model.volumeListLiveData.hasObservers()) {
+            model.volumeListLiveData.observe(viewLifecycleOwner, volumeListObserver)
+//        }
+
+        if (!model.mUpdateEndChapter.hasObservers()) {
+            model.mUpdateEndChapter.observe(viewLifecycleOwner, mUpdateEndChapterObserver)
         }
 
-        if (!model.volumeListLiveData.hasObservers()) {
-            model.volumeListLiveData.observe(viewLifecycleOwner, Observer {
-                Log.d("chris", "listObserver")
-                if (it != null) {
-                    Log.d("chris", " 2 listObserver")
-                    val sortedList = it.sortedWith(compareBy { data ->
-                        data.index
-                    })
-                    sortedList.forEach { volume ->
-                        volume.chapterList = volume.chapterList.sortedWith(compareBy { chapter ->
-                            chapter.index
-                        })
-                    }
-                    getDataBase().volumeDao().insertAllNotReplace(sortedList)
-                    addViewToMainContainer(sortedList)
-                } else {
-                    mainContainer.removeAllViews()
+        if (!model.mHideLoadingDialog.hasObservers()) {
+            model.mHideLoadingDialog.observe(viewLifecycleOwner, {
+                if (it == true) {
+                    hideLoadingDialog()
+                    model.mHideLoadingDialog.postValue(false)
                 }
             })
         }
     }
 
-    private fun initVolumeList() {
-        volumeListDB = getDataBase().volumeDao().findById(model.mNovelId.value!!)
-        if (volumeListDB.isNullOrEmpty()) {
-            model.getVolumeList(model.mNovelId.value!!)
-        } else {
-            volumeListDB = volumeListDB!!.sortedWith(compareBy {
-                it.index
-            })
-            volumeListDB!!.forEach {
-                it.chapterList = it.chapterList.sortedWith(compareBy { chapter ->
-                    chapter.index
-                })
-            }
-            model.volumeListLiveData.postValue(volumeListDB)
-        }
-    }
-
-    private fun addViewToMainContainer(volumeList: List<Volume>) {
-        volumeList.forEach { volume ->
-            val volumeTitleTextView = createVolumeTitleTextView(volume)
-            mainContainer.addView(volumeTitleTextView)
-
-            val chapterTagContainer = FlexboxLayout(requireContext())
-            chapterTagContainer.layoutParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-
-            chapterTagContainer.flexWrap = FlexWrap.WRAP
-
-            mainContainer.addView(chapterTagContainer)
-
-            volume.chapterList.forEach { it ->
-                val chapterTag = createChapterTag(it, volume._id)
-                chapterTagContainer.addView(chapterTag)
-            }
-        }
-    }
-
-    private fun createChapterTag(chapter: Chapter, volumeId: String) : TextView {
-        val textView = TextView(requireContext())
-
-        textView.textSize = App.instance.pixelToDp(resources.getDimension(R.dimen.txt_size_normal).toInt()).toFloat()
-        textView.setTextColor(Color.parseColor("#000000"))
-        textView.text = chapter.sectionName
-        textView.background = resources.getDrawable(R.drawable.bg_chapter_tag, null)
-        textView.layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        ).also {
-            it.setMargins(App.instance.dpToPixel(4f), App.instance.dpToPixel(4f), App.instance.dpToPixel(4f), App.instance.dpToPixel(4f))
-        }
-        textView.setPadding(App.instance.dpToPixel(10f), App.instance.dpToPixel(2f), App.instance.dpToPixel(10f), App.instance.dpToPixel(2f))
-        textView.gravity = Gravity.CENTER
-
-        textView.setOnClickListener {
-            App.instance.addFragment(createNovelContentFragment(chapter, volumeId), R.id.fragment_container, addToBackStack = true, fm = requireActivity().supportFragmentManager)
-        }
-
-        return textView
-    }
-
-    private fun createNovelContentFragment(chapter: Chapter, volumeId: String): Fragment {
-        val fragment = NovelContentFragment()
-        val bundle = Bundle()
-        bundle.putString("volumeId", volumeId)
-        bundle.putString("chapterId", chapter._id)
-
-        fragment.arguments = bundle
-
-        return fragment
-    }
-
-    private fun createVolumeTitleTextView(volume: Volume): TextView {
-        val textView = TextView(requireContext())
+    private fun getChapterTagHeight(): Int {
+        val textView = TextView(requireActivity().applicationContext)
         textView.textSize = 20f
         textView.setTextColor(Color.parseColor("#000000"))
-        textView.text = volume.sectionName
+        textView.text = "123"
         textView.setPadding(App.instance.dpToPixel(5f), App.instance.dpToPixel(5f), App.instance.dpToPixel(5f), App.instance.dpToPixel(5f))
 
-        return textView
+        val bounds = Rect()
+        val textPaint: Paint = textView.paint
+        textPaint.getTextBounds(textView.text.toString(), 0, textView.length(), bounds)
+        val height: Int = bounds.height()
+
+        return App.instance.dpToPixel(height.toFloat())
+    }
+
+    private fun initVolumeList() {
+        getDataBase().novelVolumeDao().findById(model.mNovelId.value!!).observeOnce(viewLifecycleOwner, {
+            volumeListDB = it
+            if (volumeListDB.isNullOrEmpty()) {
+                model.getVolumeList(model.mNovelId.value!!)
+            } else {
+                volumeListDB = volumeListDB!!.sortedWith(compareBy {
+                    it.index
+                })
+                volumeListDB!!.forEach {
+                    it.chapterList = it.chapterList.sortedWith(compareBy { chapter ->
+                        chapter.index
+                    })
+                }
+                model.volumeListLiveData.postValue(volumeListDB)
+            }
+        })
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initView()
+    }
+
+    private fun initView() {
+
+//        recyclerview_preload.showShimmerAdapter()
+
+        viewManager = LinearLayoutManager(requireActivity())
+
+        novelVolumeAdapter.register(Volume::class.java, NovelVolumeProvider())
+        novelVolumeAdapter.items = novelVolumeItems
+
+        recyclerview_novel_volume.apply {
+            setHasFixedSize(true)
+            layoutManager = viewManager
+            adapter = novelVolumeAdapter
+            addItemDecoration(HeaderItemDecoration(recyclerview_novel_volume, false) {
+
+                val item = novelVolumeItems[it]
+                if (item is Volume) {
+                    if (item.isStickyHeader) {
+                        return@HeaderItemDecoration true
+                    }
+                }
+                false
+            })
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        model.mNovelId.postValue(null)
-        model.volumeListLiveData.postValue(null)
+        model.reset()
     }
 }

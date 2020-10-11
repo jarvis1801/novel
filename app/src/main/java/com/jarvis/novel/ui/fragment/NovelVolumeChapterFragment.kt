@@ -1,12 +1,11 @@
 package com.jarvis.novel.ui.fragment
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jarvis.novel.R
@@ -14,14 +13,21 @@ import com.jarvis.novel.core.App
 import com.jarvis.novel.data.Novel
 import com.jarvis.novel.ui.base.BaseFragment
 import com.jarvis.novel.ui.viewpager.NovelVolumeChapterViewPagerAdapter
+import com.jarvis.novel.util.GlideHelper
 import com.jarvis.novel.viewModel.VolumeChapterViewModel
-import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.img_thumbnail
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.tab_main
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_author
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_is_end
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.txt_title
+import kotlinx.android.synthetic.main.fragment_novel_volume_chapter_page.viewpager
 
 class NovelVolumeChapterFragment : BaseFragment() {
     private val model: VolumeChapterViewModel by activityViewModels()
     private lateinit var novelId: String
 
-    private lateinit var viewpagerAdapter: NovelVolumeChapterViewPagerAdapter
+    private var viewpagerAdapter: NovelVolumeChapterViewPagerAdapter? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_novel_volume_chapter_page, container, false)
@@ -37,29 +43,51 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initLiveData() {
-        model.mNovelId.observe(viewLifecycleOwner, Observer {
-            if (it.isNullOrEmpty()) {
-                childFragmentManager.popBackStackImmediate()
-                txt_is_end.textSize = 20f
-            } else {
-                model.novelLiveData.postValue(getDataBase().userDao().findById(it))
-            }
-        })
+        if (!model.mNovelId.hasObservers()) {
+            model.mNovelId.observe(viewLifecycleOwner, {
+                if (it.isNullOrEmpty()) {
+                    childFragmentManager.popBackStackImmediate()
+                    txt_is_end.textSize = 20f
+                } else {
+                    getDataBase().novelDao().findById(it).observeOnce(viewLifecycleOwner, { novel ->
+                        model.novelLiveData.postValue(novel)
+                    })
+                }
+            })
+        }
 
-        model.novelLiveData.observe(viewLifecycleOwner, Observer {
-            if (it == null) {
-                childFragmentManager.popBackStackImmediate()
-            } else {
-                updateUI(it)
-            }
-        })
+        if (!model.novelLiveData.hasObservers()) {
+            model.novelLiveData.observe(viewLifecycleOwner, {
+                if (it == null) {
+                    childFragmentManager.popBackStackImmediate()
+                } else {
+                    updateUI(it)
+                }
+            })
+        }
     }
 
     private fun updateUI(novel: Novel) {
-        val bitmap = App.instance.base64ToBitmap(novel.thumbnailSection)
-        if (bitmap != null) {
-            img_thumbnail.setImageBitmap(bitmap)
+        when (App.instance.isShowThumbnail) {
+            true -> {
+                novel.thumbnailSection?.let {
+                    GlideHelper().loadImage(
+                        requireContext(),
+                        "${requireContext().getString(R.string.base_url)}file/${it.content}",
+                        img_thumbnail,
+                        it.content!!
+                    )
+//                    Glide.with(requireContext())
+//                        .load("${requireContext().getString(R.string.base_url)}file/${it.content}")
+//                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+//                        .into(img_thumbnail)
+                } ?: run {
+                    createPlaceholder()
+                }
+            }
+            false -> createPlaceholder()
         }
+
         txt_title.text = novel.name
         txt_author.text = novel.author
 
@@ -67,6 +95,16 @@ class NovelVolumeChapterFragment : BaseFragment() {
             true -> txt_is_end.text = "已完結"
             else -> txt_is_end.text = "未完結"
         }
+    }
+
+    private fun createPlaceholder() {
+        img_thumbnail.setImageBitmap(App.instance.compressedBitmap(
+            BitmapFactory.decodeResource(
+                resources,
+                R.drawable.placeholder
+            ),
+            App.instance.getScreenWidth()
+        ))
     }
 
     private fun getArgs() {
@@ -81,15 +119,29 @@ class NovelVolumeChapterFragment : BaseFragment() {
     }
 
     private fun initView() {
-        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireContext(), childFragmentManager, requireActivity().lifecycle)
+        viewpagerAdapter = NovelVolumeChapterViewPagerAdapter(novelId, requireActivity().applicationContext, childFragmentManager, viewLifecycleOwner.lifecycle)
         viewpager.apply {
             adapter = viewpagerAdapter
             (getChildAt(0) as RecyclerView).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
         }
 
         TabLayoutMediator(tab_main, viewpager) { tab, position ->
-            tab.text = viewpagerAdapter.fragmentTitleList[position]
+            viewpagerAdapter?.fragmentTitleList?.get(position).let {
+                tab.text = it
+            }
         }.attach()
+
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        model.mNovelId.postValue(null)
+        model.novelLiveData.postValue(null)
+
+        viewpagerAdapter = null
+
+        requireActivity().bottom_navigation?.visibility = View.VISIBLE
+        requireActivity().container_show_thumbnail?.visibility = View.VISIBLE
+    }
 }

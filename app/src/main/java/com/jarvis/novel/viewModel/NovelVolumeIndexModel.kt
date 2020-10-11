@@ -10,6 +10,17 @@ class NovelVolumeIndexModel : ViewModel() {
 
     val mNovelId: MutableLiveData<String?> = MutableLiveData()
 
+    val mUpdateEndChapter: MutableLiveData<String?> = MutableLiveData()
+
+    val mHideLoadingDialog: MutableLiveData<Boolean?> = MutableLiveData()
+
+    fun reset() {
+        volumeListLiveData.postValue(null)
+        mNovelId.postValue(null)
+        mUpdateEndChapter.postValue(null)
+        mHideLoadingDialog.postValue(null)
+    }
+
     fun getVolumeList(novelId: String, updateVolumeCallback: () -> Unit? = {}) {
         if (mNovelId.value == null) {
             return
@@ -25,10 +36,12 @@ class NovelVolumeIndexModel : ViewModel() {
                     updateVolumeCallback()
                 } else {
                     volumeListLiveData.postValue(null)
+                    mHideLoadingDialog.postValue(true)
                 }
             },
             err = {
                 volumeListLiveData.postValue(null)
+                mHideLoadingDialog.postValue(true)
             }
         )
     }

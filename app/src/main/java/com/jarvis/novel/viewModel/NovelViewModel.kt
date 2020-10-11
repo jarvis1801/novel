@@ -1,6 +1,5 @@
 package com.jarvis.novel.viewModel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.jarvis.novel.api.ApiRepository
@@ -18,6 +17,8 @@ class NovelViewModel : ViewModel() {
 
     var addUpdateNovelListLiveData: MutableLiveData<List<Novel>?> = MutableLiveData()
     var mAddUpdateNovelList: MutableList<Novel> = mutableListOf()
+
+    var isShowThumbnail: MutableLiveData<Boolean?> = MutableLiveData()
 
     fun getNovelList() {
         ApiRepository().getNovelList(
@@ -70,6 +71,7 @@ class NovelViewModel : ViewModel() {
                 }
 
                 override fun onError(e: Throwable) {
+                    addUpdateNovelListLiveData.postValue(mAddUpdateNovelList)
                 }
 
             })
