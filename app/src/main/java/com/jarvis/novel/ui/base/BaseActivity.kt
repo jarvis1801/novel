@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.jarvis.novel.R
 import com.jarvis.novel.database.AppDatabase
 import com.jarvis.novel.util.SharedPreferenceUtil
 import io.reactivex.disposables.CompositeDisposable
@@ -62,5 +63,10 @@ abstract class BaseActivity: FragmentActivity() {
                 removeObserver(this)
             }
         })
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.pop_enter, R.anim.pop_exit)
     }
 }

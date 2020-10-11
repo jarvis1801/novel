@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import com.jarvis.novel.R
 import com.jarvis.novel.database.AppDatabase
 import com.jarvis.novel.ui.activity.MainActivity
 import io.reactivex.disposables.CompositeDisposable
@@ -93,6 +94,7 @@ abstract class BaseFragment : Fragment(), LifecycleObserver {
         val intent = newIntent<T>(this)
         intent.init()
         startActivity(intent, options)
+        requireActivity().overridePendingTransition(R.anim.enter, R.anim.exit)
     }
 
     inline fun <reified T : Any> newIntent(context: Context): Intent =
